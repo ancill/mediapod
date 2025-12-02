@@ -54,9 +54,8 @@ class MediapodVideoPlayer extends StatefulWidget {
   final void Function(String error)? onError;
 
   /// Custom Chewie options
-  final ChewieController Function(
-    VideoPlayerController controller,
-  )? chewieControllerBuilder;
+  final ChewieController Function(VideoPlayerController controller)?
+      chewieControllerBuilder;
 
   const MediapodVideoPlayer({
     super.key,
@@ -122,9 +121,7 @@ class _MediapodVideoPlayerState extends State<MediapodVideoPlayer> {
     try {
       final videoUrl = _getVideoUrl();
 
-      _videoController = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-      );
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
 
       await _videoController!.initialize();
 
@@ -194,7 +191,7 @@ class _MediapodVideoPlayerState extends State<MediapodVideoPlayer> {
     if (controller.value.isPlaying) {
       widget.onPlay?.call();
     } else if (!controller.value.isPlaying &&
-               controller.value.position > Duration.zero) {
+        controller.value.position > Duration.zero) {
       widget.onPause?.call();
     }
 
@@ -237,26 +234,22 @@ class _MediapodVideoPlayerState extends State<MediapodVideoPlayer> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 48,
-            ),
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
               'Failed to play video',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.white),
             ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 error,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.white70,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -359,9 +352,7 @@ class _MediapodVideoPlayerSimpleState extends State<MediapodVideoPlayerSimple> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return GestureDetector(

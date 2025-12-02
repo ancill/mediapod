@@ -121,10 +121,7 @@ class MediapodAssetGrid extends StatelessWidget {
               if (enableHeroAnimation) {
                 return Hero(
                   tag: 'asset_${asset.id}',
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: tile,
-                  ),
+                  child: Material(type: MaterialType.transparency, child: tile),
                 );
               }
               return tile;
@@ -151,9 +148,7 @@ class MediapodAssetGrid extends StatelessWidget {
   }
 
   Widget _buildDefaultLoading() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildDefaultError(BuildContext context, String error) {
@@ -163,11 +158,7 @@ class MediapodAssetGrid extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Failed to load assets',
@@ -206,16 +197,16 @@ class MediapodAssetGrid extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'No assets yet',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
             ),
             const SizedBox(height: 8),
             Text(
               'Upload your first image or video',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
             ),
           ],
         ),
@@ -259,27 +250,24 @@ class MediapodAssetGridSliver extends StatelessWidget {
             crossAxisSpacing: spacing,
             childAspectRatio: childAspectRatio,
           ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final asset = controller.assets[index];
-              return AssetTile(
-                asset: asset,
-                signer: signer,
-                isSelected: controller.isSelected(asset.id),
-                showSelectionIndicator: showSelectionIndicators,
-                onTap: () => onAssetTap?.call(asset),
-                onLongPress: () {
-                  if (onAssetLongPress != null) {
-                    onAssetLongPress!(asset);
-                  } else {
-                    controller.toggleSelection(asset.id);
-                  }
-                },
-                onSelectionTap: () => controller.toggleSelection(asset.id),
-              );
-            },
-            childCount: controller.assets.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final asset = controller.assets[index];
+            return AssetTile(
+              asset: asset,
+              signer: signer,
+              isSelected: controller.isSelected(asset.id),
+              showSelectionIndicator: showSelectionIndicators,
+              onTap: () => onAssetTap?.call(asset),
+              onLongPress: () {
+                if (onAssetLongPress != null) {
+                  onAssetLongPress!(asset);
+                } else {
+                  controller.toggleSelection(asset.id);
+                }
+              },
+              onSelectionTap: () => controller.toggleSelection(asset.id),
+            );
+          }, childCount: controller.assets.length),
         );
       },
     );

@@ -4,9 +4,7 @@ import 'package:mediapod_client/mediapod_client.dart';
 void main() async {
   // Initialize the client (use nginx when running in Docker, localhost otherwise)
   final baseUrl = Platform.environment['MEDIA_API_URL'] ?? 'http://nginx';
-  final client = MediapodClient(
-    baseUrl: baseUrl,
-  );
+  final client = MediapodClient(baseUrl: baseUrl);
 
   // Directory containing images (from environment or current directory)
   final productsDirPath = Platform.environment['PRODUCTS_DIR'] ?? './products';
@@ -54,7 +52,8 @@ void main() async {
     // Skip if already uploaded
     if (uploadedFilenames.contains(filename)) {
       print(
-          '[${i + 1}/${imageFiles.length}] Skipping $filename (already uploaded)');
+        '[${i + 1}/${imageFiles.length}] Skipping $filename (already uploaded)',
+      );
       skippedCount++;
       continue;
     }
@@ -85,7 +84,8 @@ void main() async {
         if (retryCount > 0) {
           final delay = Duration(seconds: 2 * retryCount);
           print(
-              '  Retry ${retryCount}/${maxRetries} after ${delay.inSeconds}s delay...');
+            '  Retry ${retryCount}/${maxRetries} after ${delay.inSeconds}s delay...',
+          );
           await Future.delayed(delay);
         }
 

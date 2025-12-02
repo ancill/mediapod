@@ -135,10 +135,7 @@ class MediapodImage extends StatelessWidget {
     );
 
     if (borderRadius != null) {
-      image = ClipRRect(
-        borderRadius: borderRadius!,
-        child: image,
-      );
+      image = ClipRRect(borderRadius: borderRadius!, child: image);
     }
 
     return image;
@@ -149,9 +146,7 @@ class MediapodImage extends StatelessWidget {
       width: width,
       height: height,
       color: Colors.grey[200],
-      child: const Center(
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
+      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
     );
   }
 
@@ -160,9 +155,7 @@ class MediapodImage extends StatelessWidget {
       width: width,
       height: height,
       color: Colors.grey[200],
-      child: const Center(
-        child: Icon(Icons.broken_image, color: Colors.grey),
-      ),
+      child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
     );
   }
 
@@ -184,16 +177,11 @@ class MediapodImage extends StatelessWidget {
       width: width,
       height: height,
       color: Colors.grey[200],
-      child: Center(
-        child: Icon(icon, size: 32, color: Colors.grey[600]),
-      ),
+      child: Center(child: Icon(icon, size: 32, color: Colors.grey[600])),
     );
 
     if (borderRadius != null) {
-      container = ClipRRect(
-        borderRadius: borderRadius!,
-        child: container,
-      );
+      container = ClipRRect(borderRadius: borderRadius!, child: container);
     }
 
     return container;
@@ -220,10 +208,7 @@ class MediapodImage extends StatelessWidget {
     );
 
     if (borderRadius != null) {
-      container = ClipRRect(
-        borderRadius: borderRadius!,
-        child: container,
-      );
+      container = ClipRRect(borderRadius: borderRadius!, child: container);
     }
 
     return container;

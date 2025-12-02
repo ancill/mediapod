@@ -87,10 +87,7 @@ class MediapodFullscreenViewer extends StatefulWidget {
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -205,9 +202,9 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
             const SizedBox(height: 16),
             Text(
               'ImgProxy signer not configured',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white54,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.white54),
             ),
           ],
         ),
@@ -226,9 +223,7 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
       minScale: PhotoViewComputedScale.contained,
       maxScale: PhotoViewComputedScale.covered * 3,
       initialScale: PhotoViewComputedScale.contained,
-      backgroundDecoration: BoxDecoration(
-        color: widget.backgroundColor,
-      ),
+      backgroundDecoration: BoxDecoration(color: widget.backgroundColor),
       loadingBuilder: (context, event) {
         return Center(
           child: CircularProgressIndicator(
@@ -244,17 +239,13 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.broken_image,
-                color: Colors.white54,
-                size: 64,
-              ),
+              const Icon(Icons.broken_image, color: Colors.white54, size: 64),
               const SizedBox(height: 16),
               Text(
                 'Failed to load image',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white54,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.white54),
               ),
             ],
           ),
@@ -264,7 +255,9 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
   }
 
   Widget _buildVideoPlayer() {
-    debugPrint('[FullscreenViewer] Video asset state: ${widget.asset.state}, isProcessing: ${widget.asset.isProcessing}, isReady: ${widget.asset.isReady}');
+    debugPrint(
+      '[FullscreenViewer] Video asset state: ${widget.asset.state}, isProcessing: ${widget.asset.isProcessing}, isReady: ${widget.asset.isReady}',
+    );
 
     if (widget.vodBaseUrl == null) {
       return const Center(
@@ -312,11 +305,7 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.red,
-              size: 64,
-            ),
+            const Icon(Icons.error_outline, color: Colors.red, size: 64),
             const SizedBox(height: 24),
             const Text(
               'Video processing failed',
@@ -399,7 +388,8 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
                 if (widget.showInfo)
                   IconButton(
                     icon: const Icon(Icons.info_outline, color: Colors.white),
-                    onPressed: widget.onInfoTap ?? () => _showAssetInfo(context),
+                    onPressed:
+                        widget.onInfoTap ?? () => _showAssetInfo(context),
                   ),
               ],
             ),
@@ -501,11 +491,15 @@ class _MediapodFullscreenViewerState extends State<MediapodFullscreenViewer> {
               _infoRow('Size', _formatSize(widget.asset.size)),
               if (widget.asset.width != null && widget.asset.height != null)
                 _infoRow(
-                    'Dimensions', '${widget.asset.width} x ${widget.asset.height}'),
+                  'Dimensions',
+                  '${widget.asset.width} x ${widget.asset.height}',
+                ),
               if (widget.asset.duration != null)
                 _infoRow('Duration', _formatDuration(widget.asset.duration!)),
               _infoRow(
-                  'Created', widget.asset.createdAt.toString().split('.').first),
+                'Created',
+                widget.asset.createdAt.toString().split('.').first,
+              ),
             ],
           ),
         ),

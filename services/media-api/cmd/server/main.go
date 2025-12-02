@@ -9,16 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ancill/mediapod/services/media-api/internal/api"
+	"github.com/ancill/mediapod/services/media-api/internal/config"
+	"github.com/ancill/mediapod/services/media-api/internal/db"
+	"github.com/ancill/mediapod/services/media-api/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/ancill/mediapod/services/media-api/internal/api"
-	"github.com/ancill/mediapod/services/media-api/internal/config"
-	"github.com/ancill/mediapod/services/media-api/internal/db"
-	"github.com/ancill/mediapod/services/media-api/internal/storage"
 )
 
 func main() {

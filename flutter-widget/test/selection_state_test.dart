@@ -43,8 +43,10 @@ void main() {
       const atLimit = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
       expect(atLimit.isAtLimit, isTrue);
 
-      const belowLimit =
-          SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 3);
+      const belowLimit = SelectionState(
+        selectedIds: {'id1', 'id2'},
+        maxCount: 3,
+      );
       expect(belowLimit.isAtLimit, isFalse);
     });
 
@@ -91,20 +93,14 @@ void main() {
       });
 
       test('respects max count limit', () {
-        const state = SelectionState(
-          selectedIds: {'id1', 'id2'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
         final newState = state.toggle('id3');
 
         expect(newState.selectedIds, equals({'id1', 'id2'}));
       });
 
       test('allows deselection when at limit', () {
-        const state = SelectionState(
-          selectedIds: {'id1', 'id2'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
         final newState = state.toggle('id1');
 
         expect(newState.selectedIds, equals({'id2'}));
@@ -145,10 +141,7 @@ void main() {
       });
 
       test('does nothing when at limit', () {
-        const state = SelectionState(
-          selectedIds: {'id1', 'id2'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
         final newState = state.select('id3');
 
         expect(newState.selectedIds.length, 2);
@@ -199,10 +192,7 @@ void main() {
       });
 
       test('does nothing in single mode', () {
-        final assets = [
-          createTestAsset('id1'),
-          createTestAsset('id2'),
-        ];
+        final assets = [createTestAsset('id1'), createTestAsset('id2')];
 
         const state = SelectionState(mode: SelectionMode.single);
         final newState = state.selectAll(assets);
@@ -259,10 +249,7 @@ void main() {
       });
 
       test('returns true for already selected (allows deselect)', () {
-        const state = SelectionState(
-          selectedIds: {'id1', 'id2'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
 
         expect(state.canSelect('id1'), isTrue);
       });
@@ -274,19 +261,13 @@ void main() {
       });
 
       test('returns false when at limit in multiple mode', () {
-        const state = SelectionState(
-          selectedIds: {'id1', 'id2'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1', 'id2'}, maxCount: 2);
 
         expect(state.canSelect('id3'), isFalse);
       });
 
       test('returns true when not at limit in multiple mode', () {
-        const state = SelectionState(
-          selectedIds: {'id1'},
-          maxCount: 2,
-        );
+        const state = SelectionState(selectedIds: {'id1'}, maxCount: 2);
 
         expect(state.canSelect('id2'), isTrue);
       });

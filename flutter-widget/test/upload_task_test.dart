@@ -204,14 +204,17 @@ void main() {
 
   group('UploadStatus', () {
     test('has all expected values', () {
-      expect(UploadStatus.values, containsAll([
-        UploadStatus.queued,
-        UploadStatus.uploading,
-        UploadStatus.processing,
-        UploadStatus.completed,
-        UploadStatus.failed,
-        UploadStatus.cancelled,
-      ]));
+      expect(
+        UploadStatus.values,
+        containsAll([
+          UploadStatus.queued,
+          UploadStatus.uploading,
+          UploadStatus.processing,
+          UploadStatus.completed,
+          UploadStatus.failed,
+          UploadStatus.cancelled,
+        ]),
+      );
     });
   });
 }

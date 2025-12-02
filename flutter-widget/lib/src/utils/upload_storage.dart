@@ -27,8 +27,9 @@ class UploadStorage {
     if (_prefs == null) await init();
 
     // Only save tasks that can be retried (queued or failed)
-    final retryableTasks = tasks.where((t) =>
-        t.status == UploadStatus.queued || t.status == UploadStatus.failed);
+    final retryableTasks = tasks.where(
+      (t) => t.status == UploadStatus.queued || t.status == UploadStatus.failed,
+    );
 
     final taskData = retryableTasks.map((t) => _taskToJson(t)).toList();
     await _prefs!.setString(_storageKey, jsonEncode(taskData));
@@ -52,7 +53,9 @@ class UploadStorage {
           .whereType<PendingUploadData>()
           .toList();
 
-      debugPrint('[UploadStorage] Loaded ${pendingUploads.length} pending uploads');
+      debugPrint(
+        '[UploadStorage] Loaded ${pendingUploads.length} pending uploads',
+      );
       return pendingUploads;
     } catch (e) {
       debugPrint('[UploadStorage] Failed to load pending uploads: $e');
@@ -136,5 +139,6 @@ class PendingUploadData {
       };
 
   @override
-  String toString() => 'PendingUploadData(taskId: $taskId, fileName: $fileName)';
+  String toString() =>
+      'PendingUploadData(taskId: $taskId, fileName: $fileName)';
 }

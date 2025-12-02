@@ -110,10 +110,7 @@ class MediapodClient {
     final body = await response.stream.bytesToString();
 
     if (response.statusCode >= 400) {
-      throw MediaApiError(
-        'Upload failed: $body',
-        response.statusCode,
-      );
+      throw MediaApiError('Upload failed: $body', response.statusCode);
     }
   }
 
@@ -278,10 +275,7 @@ class MediapodClient {
     final response = await _httpClient.get(url, headers: _buildHeaders());
 
     if (response.statusCode >= 400) {
-      throw MediaApiError(
-        _parseError(response.body),
-        response.statusCode,
-      );
+      throw MediaApiError(_parseError(response.body), response.statusCode);
     }
 
     return json.decode(response.body) as Map<String, dynamic>;
@@ -299,10 +293,7 @@ class MediapodClient {
     );
 
     if (response.statusCode >= 400) {
-      throw MediaApiError(
-        _parseError(response.body),
-        response.statusCode,
-      );
+      throw MediaApiError(_parseError(response.body), response.statusCode);
     }
 
     return json.decode(response.body) as Map<String, dynamic>;
@@ -313,10 +304,7 @@ class MediapodClient {
     final response = await _httpClient.delete(url, headers: _buildHeaders());
 
     if (response.statusCode >= 400 && response.statusCode != 404) {
-      throw MediaApiError(
-        _parseError(response.body),
-        response.statusCode,
-      );
+      throw MediaApiError(_parseError(response.body), response.statusCode);
     }
   }
 

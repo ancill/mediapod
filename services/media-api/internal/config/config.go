@@ -6,14 +6,14 @@ import (
 )
 
 type Config struct {
-	Port               string
-	DatabaseURL        string
-	MinIO              MinIOConfig
-	Redis              RedisConfig
-	ImgProxy           ImgProxyConfig
-	PublicImgProxyURL  string
-	PublicVODURL       string
-	PublicThumbsURL    string
+	Port              string
+	DatabaseURL       string
+	MinIO             MinIOConfig
+	Redis             RedisConfig
+	ImgProxy          ImgProxyConfig
+	PublicImgProxyURL string
+	PublicVODURL      string
+	PublicThumbsURL   string
 }
 
 type MinIOConfig struct {

@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ancill/mediapod/services/media-api/internal/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/ancill/mediapod/services/media-api/internal/config"
 )
 
 type MinIO struct {
-	client         *minio.Client
-	presignClient  *minio.Client // Client configured with public endpoint for presigned URLs
-	cfg            config.MinIOConfig
+	client        *minio.Client
+	presignClient *minio.Client // Client configured with public endpoint for presigned URLs
+	cfg           config.MinIOConfig
 }
 
 func NewMinIO(cfg config.MinIOConfig) (*MinIO, error) {
@@ -32,9 +32,9 @@ func NewMinIO(cfg config.MinIOConfig) (*MinIO, error) {
 	if cfg.PublicEndpoint != "" && cfg.PublicEndpoint != cfg.Endpoint {
 		presignClient, err = minio.New(cfg.PublicEndpoint, &minio.Options{
 			Creds:        credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
-			Secure:       true,                    // Public endpoint uses HTTPS
-			Region:       "us-east-1",             // Explicit region avoids lookup call
-			BucketLookup: minio.BucketLookupPath,  // Path-style URLs, no DNS lookup
+			Secure:       true,                   // Public endpoint uses HTTPS
+			Region:       "us-east-1",            // Explicit region avoids lookup call
+			BucketLookup: minio.BucketLookupPath, // Path-style URLs, no DNS lookup
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create presign MinIO client: %w", err)

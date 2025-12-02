@@ -66,10 +66,7 @@ class CompleteUploadResponse {
   final String state;
   final String? message;
 
-  CompleteUploadResponse({
-    required this.state,
-    this.message,
-  });
+  CompleteUploadResponse({required this.state, this.message});
 
   factory CompleteUploadResponse.fromJson(Map<String, dynamic> json) {
     return CompleteUploadResponse(
@@ -140,10 +137,7 @@ class ListAssetsResponse {
   final List<Asset> assets;
   final int total;
 
-  ListAssetsResponse({
-    required this.assets,
-    required this.total,
-  });
+  ListAssetsResponse({required this.assets, required this.total});
 
   factory ListAssetsResponse.fromJson(Map<String, dynamic> json) {
     final rawAssets = json['assets'];

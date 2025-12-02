@@ -113,45 +113,44 @@ class MediaController extends ChangeNotifier {
     _processingPollers[assetId]?.cancel();
 
     // Poll every 3 seconds
-    _processingPollers[assetId] = Timer.periodic(
-      const Duration(seconds: 3),
-      (timer) async {
-        // Stop if controller is disposed
+    _processingPollers[assetId] = Timer.periodic(const Duration(seconds: 3), (
+      timer,
+    ) async {
+      // Stop if controller is disposed
+      if (_isDisposed) {
+        timer.cancel();
+        return;
+      }
+
+      try {
+        final asset = await client.getAsset(assetId: assetId);
+
+        // Check again after async call
         if (_isDisposed) {
           timer.cancel();
           return;
         }
 
-        try {
-          final asset = await client.getAsset(assetId: assetId);
+        // Update the asset in the list
+        final index = _assets.indexWhere((a) => a.id == assetId);
+        if (index != -1) {
+          _assets[index] = asset;
+          notifyListeners();
+        }
 
-          // Check again after async call
-          if (_isDisposed) {
-            timer.cancel();
-            return;
-          }
-
-          // Update the asset in the list
-          final index = _assets.indexWhere((a) => a.id == assetId);
-          if (index != -1) {
-            _assets[index] = asset;
-            notifyListeners();
-          }
-
-          // Stop polling if asset is ready or failed
-          if (asset.isReady || asset.isFailed) {
-            timer.cancel();
-            _processingPollers.remove(assetId);
-            debugPrint('Asset $assetId processing complete: ${asset.state}');
-          }
-        } catch (e) {
-          debugPrint('Failed to poll asset $assetId: $e');
-          // Stop polling on error after a few retries
+        // Stop polling if asset is ready or failed
+        if (asset.isReady || asset.isFailed) {
           timer.cancel();
           _processingPollers.remove(assetId);
+          debugPrint('Asset $assetId processing complete: ${asset.state}');
         }
-      },
-    );
+      } catch (e) {
+        debugPrint('Failed to poll asset $assetId: $e');
+        // Stop polling on error after a few retries
+        timer.cancel();
+        _processingPollers.remove(assetId);
+      }
+    });
   }
 
   /// Load assets from server
@@ -256,10 +255,7 @@ class MediaController extends ChangeNotifier {
   }
 
   /// Add a single file to upload queue
-  Future<UploadTask> queueUpload(
-    XFile file, {
-    AssetKind? kind,
-  }) async {
+  Future<UploadTask> queueUpload(XFile file, {AssetKind? kind}) async {
     final task = await uploadController.enqueue(file, kind: kind);
     notifyListeners();
     return task;
@@ -286,10 +282,7 @@ class MediaController extends ChangeNotifier {
   /// Update selection mode
   void setSelectionMode(SelectionMode mode) {
     if (_selection.mode == mode) return;
-    _selection = SelectionState(
-      mode: mode,
-      maxCount: _selection.maxCount,
-    );
+    _selection = SelectionState(mode: mode, maxCount: _selection.maxCount);
     notifyListeners();
   }
 

@@ -108,10 +108,7 @@ class MediapodGallery extends StatefulWidget {
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -216,11 +213,13 @@ class _MediapodGalleryState extends State<MediapodGallery> {
         }
 
         final imageUrl = widget.signer?.buildImageUrl(
-          bucket: asset.bucket,
-          objectKey: asset.objectKey,
-          quality: 95,
-          format: 'webp',
-        ) ?? asset.urls['original'] as String? ?? '';
+              bucket: asset.bucket,
+              objectKey: asset.objectKey,
+              quality: 95,
+              format: 'webp',
+            ) ??
+            asset.urls['original'] as String? ??
+            '';
 
         return PhotoViewGalleryPageOptions(
           imageProvider: NetworkImage(imageUrl),
@@ -251,10 +250,7 @@ class _MediapodGalleryState extends State<MediapodGallery> {
           children: [
             const Icon(Icons.videocam, size: 64, color: Colors.white54),
             const SizedBox(height: 16),
-            Text(
-              asset.filename,
-              style: const TextStyle(color: Colors.white70),
-            ),
+            Text(asset.filename, style: const TextStyle(color: Colors.white70)),
           ],
         ),
       );
@@ -295,10 +291,7 @@ class _MediapodGalleryState extends State<MediapodGallery> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withValues(alpha: 0.7),
-            Colors.transparent,
-          ],
+          colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -379,10 +372,7 @@ class _MediapodGalleryState extends State<MediapodGallery> {
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [
-            Colors.black.withValues(alpha: 0.7),
-            Colors.transparent,
-          ],
+          colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
         ),
       ),
       child: ListView.builder(
@@ -429,14 +419,16 @@ class _MediapodGalleryState extends State<MediapodGallery> {
     }
 
     final thumbnailUrl = widget.signer?.buildImageUrl(
-      bucket: asset.bucket,
-      objectKey: asset.objectKey,
-      width: 128,
-      height: 128,
-      quality: 70,
-      format: 'webp',
-      resizeType: 'fill',
-    ) ?? asset.urls['thumbnail'] as String? ?? '';
+          bucket: asset.bucket,
+          objectKey: asset.objectKey,
+          width: 128,
+          height: 128,
+          quality: 70,
+          format: 'webp',
+          resizeType: 'fill',
+        ) ??
+        asset.urls['thumbnail'] as String? ??
+        '';
 
     return Image.network(
       thumbnailUrl,

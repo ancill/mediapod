@@ -143,8 +143,7 @@ class _MediapodScopeState extends State<MediapodScope> {
 /// Extension methods for easy access to media provider
 extension MediapodProviderExtension on BuildContext {
   /// Get the MediaController from this context
-  MediaController get mediaController =>
-      MediapodProvider.controllerOf(this);
+  MediaController get mediaController => MediapodProvider.controllerOf(this);
 
   /// Get the ImgProxySigner from this context (may return null)
   ImgProxySigner? get imgproxySigner => MediapodProvider.signerOf(this);

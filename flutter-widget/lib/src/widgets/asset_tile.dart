@@ -70,26 +70,28 @@ class AssetTile extends StatelessWidget {
         onTap: canTap ? onTap : null,
         onLongPress: canTap ? onLongPress : null,
         child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Image
-          _buildImage(),
+          fit: StackFit.expand,
+          children: [
+            // Image
+            _buildImage(),
 
-          // Video duration badge
-          if (showVideoDuration && asset.kind == 'video' && asset.duration != null)
-            _buildDurationBadge(theme),
+            // Video duration badge
+            if (showVideoDuration &&
+                asset.kind == 'video' &&
+                asset.duration != null)
+              _buildDurationBadge(theme),
 
-          // Processing indicator
-          if (showProcessingIndicator && asset.isProcessing)
-            _buildProcessingOverlay(theme),
+            // Processing indicator
+            if (showProcessingIndicator && asset.isProcessing)
+              _buildProcessingOverlay(theme),
 
-          // Failed indicator
-          if (asset.isFailed) _buildFailedOverlay(theme),
+            // Failed indicator
+            if (asset.isFailed) _buildFailedOverlay(theme),
 
-          // Selection indicator
-          if (showSelectionIndicator) _buildSelectionIndicator(theme),
-        ],
-      ),
+            // Selection indicator
+            if (showSelectionIndicator) _buildSelectionIndicator(theme),
+          ],
+        ),
       ),
     );
   }
@@ -169,9 +171,7 @@ class AssetTile extends StatelessWidget {
       borderRadius: borderRadius,
       child: Container(
         color: Colors.grey[300],
-        child: Center(
-          child: Icon(icon, size: 32, color: Colors.grey[600]),
-        ),
+        child: Center(child: Icon(icon, size: 32, color: Colors.grey[600])),
       ),
     );
   }
@@ -180,7 +180,8 @@ class AssetTile extends StatelessWidget {
     final duration = Duration(seconds: asset.duration!.round());
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
-    final text = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final text =
+        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
     return Positioned(
       right: 4,
@@ -188,16 +189,19 @@ class AssetTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: (theme?.overlayColor ?? Colors.black).withValues(alpha: theme?.overlayOpacity ?? 0.7),
+          color: (theme?.overlayColor ?? Colors.black).withValues(
+            alpha: theme?.overlayOpacity ?? 0.7,
+          ),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
           text,
-          style: theme?.badgeStyle ?? const TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
+          style: theme?.badgeStyle ??
+              const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
         ),
       ),
     );
@@ -225,10 +229,7 @@ class AssetTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Processing',
-                style: TextStyle(
-                  color: processingColor,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: processingColor, fontSize: 10),
               ),
             ],
           ),
@@ -245,11 +246,7 @@ class AssetTile extends StatelessWidget {
       child: Container(
         color: errorColor.withValues(alpha: 0.3),
         child: const Center(
-          child: Icon(
-            Icons.error_outline,
-            color: Colors.white,
-            size: 32,
-          ),
+          child: Icon(Icons.error_outline, color: Colors.white, size: 32),
         ),
       ),
     );
@@ -259,7 +256,8 @@ class AssetTile extends StatelessWidget {
     final selectionColor = theme?.selectionColor ?? Colors.blue;
     final size = theme?.selectionIndicatorSize ?? 24.0;
     final borderWidth = theme?.selectionBorderWidth ?? 2.0;
-    final animationDuration = theme?.animationDuration ?? const Duration(milliseconds: 200);
+    final animationDuration =
+        theme?.animationDuration ?? const Duration(milliseconds: 200);
 
     return Positioned(
       top: 0,
@@ -275,7 +273,9 @@ class AssetTile extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isSelected ? selectionColor : Colors.white.withValues(alpha: 0.8),
+              color: isSelected
+                  ? selectionColor
+                  : Colors.white.withValues(alpha: 0.8),
               border: Border.all(
                 color: isSelected ? selectionColor : Colors.grey[400]!,
                 width: borderWidth,

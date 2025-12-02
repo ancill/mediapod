@@ -88,9 +88,7 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
     super.initState();
 
     // Initialize API client with configured URL
-    client = MediapodClient(
-      baseUrl: AppConfig.apiUrl,
-    );
+    client = MediapodClient(baseUrl: AppConfig.apiUrl);
 
     // Initialize ImgProxy signer only if credentials are provided
     // Without credentials, images will use direct URLs (not recommended for production)
@@ -121,14 +119,14 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
       ),
       onAssetTap: (asset) => _openGallery(context, asset),
       onUploadComplete: (asset) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Uploaded: ${asset.filename}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Uploaded: ${asset.filename}')));
       },
       onAssetDeleted: (assetId) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deleted asset')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Deleted asset')));
       },
     );
   }
@@ -174,11 +172,7 @@ class AssetDetailPage extends StatelessWidget {
   final Asset asset;
   final ImgProxySigner signer;
 
-  const AssetDetailPage({
-    super.key,
-    required this.asset,
-    required this.signer,
-  });
+  const AssetDetailPage({super.key, required this.asset, required this.signer});
 
   @override
   Widget build(BuildContext context) {
@@ -187,10 +181,7 @@ class AssetDetailPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(
-          asset.filename,
-          style: const TextStyle(fontSize: 14),
-        ),
+        title: Text(asset.filename, style: const TextStyle(fontSize: 14)),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -222,10 +213,7 @@ class AssetDetailPage extends StatelessWidget {
       children: [
         const Icon(Icons.videocam, size: 64, color: Colors.white54),
         const SizedBox(height: 16),
-        Text(
-          asset.filename,
-          style: const TextStyle(color: Colors.white70),
-        ),
+        Text(asset.filename, style: const TextStyle(color: Colors.white70)),
         if (asset.duration != null)
           Text(
             'Duration: ${_formatDuration(asset.duration!)}',
@@ -257,10 +245,7 @@ class AssetDetailPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Asset Info',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Asset Info', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 16),
               _infoRow('ID', asset.id),
               _infoRow('Type', asset.kind),
@@ -296,10 +281,7 @@ class AssetDetailPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontFamily: 'monospace'),
-            ),
+            child: Text(value, style: const TextStyle(fontFamily: 'monospace')),
           ),
         ],
       ),

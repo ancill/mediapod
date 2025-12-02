@@ -39,9 +39,7 @@ class _DropZoneState extends State<DropZone> {
       children: [
         widget.child,
         if (_isDragging && widget.enabled)
-          Positioned.fill(
-            child: widget.dragOverlay ?? _buildDefaultOverlay(),
-          ),
+          Positioned.fill(child: widget.dragOverlay ?? _buildDefaultOverlay()),
       ],
     );
   }
@@ -66,11 +64,7 @@ class _DropZoneState extends State<DropZone> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.cloud_upload,
-                size: 64,
-                color: Colors.blue[400],
-              ),
+              Icon(Icons.cloud_upload, size: 64, color: Colors.blue[400]),
               const SizedBox(height: 16),
               Text(
                 'Drop files to upload',
@@ -129,11 +123,7 @@ class DropTarget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(icon, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               label,
@@ -147,10 +137,7 @@ class DropTarget extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 sublabel!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                 textAlign: TextAlign.center,
               ),
             ],

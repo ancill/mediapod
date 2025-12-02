@@ -10,15 +10,17 @@ void main() {
 
   setUp(() {
     mockSigner = MockImgProxySigner();
-    when(() => mockSigner.buildImageUrl(
-          bucket: any(named: 'bucket'),
-          objectKey: any(named: 'objectKey'),
-          width: any(named: 'width'),
-          height: any(named: 'height'),
-          format: any(named: 'format'),
-          quality: any(named: 'quality'),
-          resizeType: any(named: 'resizeType'),
-        )).thenReturn('https://img.example.com/signed/image.webp');
+    when(
+      () => mockSigner.buildImageUrl(
+        bucket: any(named: 'bucket'),
+        objectKey: any(named: 'objectKey'),
+        width: any(named: 'width'),
+        height: any(named: 'height'),
+        format: any(named: 'format'),
+        quality: any(named: 'quality'),
+        resizeType: any(named: 'resizeType'),
+      ),
+    ).thenReturn('https://img.example.com/signed/image.webp');
   });
 
   Asset createTestAsset({
@@ -53,10 +55,7 @@ void main() {
             body: SizedBox(
               width: 100,
               height: 100,
-              child: AssetTile(
-                asset: asset,
-                signer: mockSigner,
-              ),
+              child: AssetTile(asset: asset, signer: mockSigner),
             ),
           ),
         ),
@@ -89,30 +88,32 @@ void main() {
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
 
-    testWidgets('hides selection indicator when showSelectionIndicator is false',
-        (tester) async {
-      final asset = createTestAsset();
+    testWidgets(
+      'hides selection indicator when showSelectionIndicator is false',
+      (tester) async {
+        final asset = createTestAsset();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 100,
-              height: 100,
-              child: AssetTile(
-                asset: asset,
-                signer: mockSigner,
-                isSelected: true,
-                showSelectionIndicator: false,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 100,
+                height: 100,
+                child: AssetTile(
+                  asset: asset,
+                  signer: mockSigner,
+                  isSelected: true,
+                  showSelectionIndicator: false,
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Selection indicator should not be visible
-      expect(find.byIcon(Icons.check), findsNothing);
-    });
+        // Selection indicator should not be visible
+        expect(find.byIcon(Icons.check), findsNothing);
+      },
+    );
 
     testWidgets('shows video duration badge for video assets', (tester) async {
       final asset = createTestAsset(
@@ -139,8 +140,9 @@ void main() {
       expect(find.text('02:05'), findsOneWidget);
     });
 
-    testWidgets('shows processing overlay when asset is processing',
-        (tester) async {
+    testWidgets('shows processing overlay when asset is processing', (
+      tester,
+    ) async {
       final asset = createTestAsset(state: 'processing');
 
       await tester.pumpWidget(
@@ -172,10 +174,7 @@ void main() {
             body: SizedBox(
               width: 100,
               height: 100,
-              child: AssetTile(
-                asset: asset,
-                signer: mockSigner,
-              ),
+              child: AssetTile(asset: asset, signer: mockSigner),
             ),
           ),
         ),
@@ -257,10 +256,7 @@ void main() {
     });
 
     testWidgets('has correct semantics for accessibility', (tester) async {
-      final asset = createTestAsset(
-        filename: 'vacation.jpg',
-        kind: 'image',
-      );
+      final asset = createTestAsset(filename: 'vacation.jpg', kind: 'image');
 
       await tester.pumpWidget(
         MaterialApp(

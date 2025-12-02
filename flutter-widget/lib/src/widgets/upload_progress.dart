@@ -211,9 +211,11 @@ class UploadProgressList extends StatelessWidget {
             final task = tasks[index];
             return UploadProgressItem(
               task: task,
-              onCancel: task.canCancel ? () => controller.cancel(task.id) : null,
+              onCancel:
+                  task.canCancel ? () => controller.cancel(task.id) : null,
               onRetry: task.canRetry ? () => controller.retry(task.id) : null,
-              onDismiss: task.isFinished ? () => controller.remove(task.id) : null,
+              onDismiss:
+                  task.isFinished ? () => controller.remove(task.id) : null,
             );
           },
         );
@@ -227,11 +229,7 @@ class UploadProgressBar extends StatelessWidget {
   final UploadController controller;
   final VoidCallback? onTap;
 
-  const UploadProgressBar({
-    super.key,
-    required this.controller,
-    this.onTap,
-  });
+  const UploadProgressBar({super.key, required this.controller, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -243,9 +241,8 @@ class UploadProgressBar extends StatelessWidget {
         }
 
         final pending = controller.pendingTasks;
-        final uploading = pending
-            .where((t) => t.status == UploadStatus.uploading)
-            .toList();
+        final uploading =
+            pending.where((t) => t.status == UploadStatus.uploading).toList();
 
         // Calculate overall progress
         double totalProgress = 0;
@@ -281,10 +278,7 @@ class UploadProgressBar extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      LinearProgressIndicator(
-                        value: avgProgress,
-                        minHeight: 2,
-                      ),
+                      LinearProgressIndicator(value: avgProgress, minHeight: 2),
                     ],
                   ),
                 ),

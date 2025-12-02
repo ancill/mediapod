@@ -1,8 +1,9 @@
 name: Deploy Mediapod Stack to Production
 
 on:
-  push:
-    branches: [main]
+  # Disabled auto-deploy on push - use manual trigger only
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       target:

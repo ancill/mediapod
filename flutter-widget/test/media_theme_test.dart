@@ -71,9 +71,7 @@ void main() {
     });
 
     test('uses custom overlay gradient when provided', () {
-      final customGradient = LinearGradient(
-        colors: [Colors.red, Colors.blue],
-      );
+      final customGradient = LinearGradient(colors: [Colors.red, Colors.blue]);
 
       final theme = MediaTheme(overlayGradient: customGradient);
 
@@ -154,8 +152,9 @@ void main() {
       expect(retrievedTheme, isNull);
     });
 
-    testWidgets('updateShouldNotify returns true when theme changes',
-        (tester) async {
+    testWidgets('updateShouldNotify returns true when theme changes', (
+      tester,
+    ) async {
       var buildCount = 0;
 
       await tester.pumpWidget(

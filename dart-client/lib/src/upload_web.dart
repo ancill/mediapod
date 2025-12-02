@@ -41,7 +41,9 @@ Future<void> uploadBytesImpl({
         completer.complete();
       } else {
         completer.completeError(
-          Exception('Upload failed with status ${xhr.status}: ${xhr.responseText}'),
+          Exception(
+            'Upload failed with status ${xhr.status}: ${xhr.responseText}',
+          ),
         );
       }
     }).toJS,

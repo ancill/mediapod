@@ -8,14 +8,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ancill/mediapod/services/media-worker/internal/processor"
+	"github.com/ancill/mediapod/services/media-worker/internal/worker"
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/ancill/mediapod/services/media-worker/internal/processor"
-	"github.com/ancill/mediapod/services/media-worker/internal/worker"
 )
 
 func main() {
@@ -84,14 +84,14 @@ func main() {
 }
 
 type Config struct {
-	DatabaseURL     string
-	MinIOEndpoint   string
-	MinIOAccessKey  string
-	MinIOSecretKey  string
-	MinIOUseSSL     bool
-	RedisAddr       string
-	Concurrency     int
-	TempDir         string
+	DatabaseURL    string
+	MinIOEndpoint  string
+	MinIOAccessKey string
+	MinIOSecretKey string
+	MinIOUseSSL    bool
+	RedisAddr      string
+	Concurrency    int
+	TempDir        string
 }
 
 func loadConfig() Config {

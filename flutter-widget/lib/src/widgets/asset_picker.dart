@@ -10,10 +10,7 @@ class PickerResult {
   final List<XFile> files;
   final AssetKind? kind;
 
-  const PickerResult({
-    required this.files,
-    this.kind,
-  });
+  const PickerResult({required this.files, this.kind});
 
   bool get isEmpty => files.isEmpty;
   bool get isNotEmpty => files.isNotEmpty;
@@ -137,9 +134,11 @@ class _PickerBottomSheetState extends State<_PickerBottomSheet> {
           if (widget.config.enableGallery) ...[
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: Text(widget.config.maxAssets > 1
-                  ? 'Choose from Gallery'
-                  : 'Choose Photo'),
+              title: Text(
+                widget.config.maxAssets > 1
+                    ? 'Choose from Gallery'
+                    : 'Choose Photo',
+              ),
               onTap: _isLoading ? null : _pickFromGallery,
             ),
             ListTile(
@@ -249,19 +248,25 @@ class _PickerBottomSheetState extends State<_PickerBottomSheet> {
 
         for (final f in result.files.take(widget.config.maxAssets)) {
           debugPrint('Picked file: ${f.name}');
-          debugPrint('  - size from picker: ${f.size} bytes (${(f.size / (1024 * 1024)).toStringAsFixed(2)} MB)');
+          debugPrint(
+            '  - size from picker: ${f.size} bytes (${(f.size / (1024 * 1024)).toStringAsFixed(2)} MB)',
+          );
           debugPrint('  - bytes available: ${f.bytes != null}');
           debugPrint('  - bytes length: ${f.bytes?.length ?? 0}');
 
           // On web, always use bytes; on other platforms, prefer path
           if (kIsWeb) {
             if (f.bytes != null) {
-              debugPrint('  -> Using XFile.fromData with ${f.bytes!.length} bytes');
-              xFiles.add(XFile.fromData(
-                f.bytes!,
-                name: f.name,
-                mimeType: _getMimeType(f.name),
-              ));
+              debugPrint(
+                '  -> Using XFile.fromData with ${f.bytes!.length} bytes',
+              );
+              xFiles.add(
+                XFile.fromData(
+                  f.bytes!,
+                  name: f.name,
+                  mimeType: _getMimeType(f.name),
+                ),
+              );
             } else {
               debugPrint('  -> WARNING: No bytes available on web!');
             }
@@ -270,15 +275,21 @@ class _PickerBottomSheetState extends State<_PickerBottomSheet> {
             debugPrint('  - path: ${f.path}');
             if (f.path != null && f.path!.isNotEmpty) {
               debugPrint('  -> Using file path: ${f.path}');
-              xFiles.add(XFile(f.path!, name: f.name, mimeType: _getMimeType(f.name)));
+              xFiles.add(
+                XFile(f.path!, name: f.name, mimeType: _getMimeType(f.name)),
+              );
             } else if (f.bytes != null) {
               // Fallback to bytes if path not available
-              debugPrint('  -> Fallback: Using XFile.fromData with ${f.bytes!.length} bytes');
-              xFiles.add(XFile.fromData(
-                f.bytes!,
-                name: f.name,
-                mimeType: _getMimeType(f.name),
-              ));
+              debugPrint(
+                '  -> Fallback: Using XFile.fromData with ${f.bytes!.length} bytes',
+              );
+              xFiles.add(
+                XFile.fromData(
+                  f.bytes!,
+                  name: f.name,
+                  mimeType: _getMimeType(f.name),
+                ),
+              );
             }
           }
         }
@@ -376,8 +387,8 @@ class _PickerBottomSheetState extends State<_PickerBottomSheet> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

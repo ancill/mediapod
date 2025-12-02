@@ -66,10 +66,8 @@ class MediapodMediaManager extends StatefulWidget {
   final Widget Function(BuildContext context)? emptyBuilder;
 
   /// Custom FAB builder
-  final Widget Function(
-    BuildContext context,
-    MediaController controller,
-  )? fabBuilder;
+  final Widget Function(BuildContext context, MediaController controller)?
+      fabBuilder;
 
   /// Whether to show the default app bar
   final bool showAppBar;
@@ -174,8 +172,8 @@ class _MediapodMediaManagerState extends State<MediapodMediaManager> {
 
     final hasAssets = _controller.assets.isNotEmpty;
     final hasSelection = _controller.hasSelection;
-    final allSelected = hasAssets &&
-        _controller.selectedCount == _controller.assets.length;
+    final allSelected =
+        hasAssets && _controller.selectedCount == _controller.assets.length;
 
     return AppBar(
       title: hasSelection
@@ -186,7 +184,9 @@ class _MediapodMediaManagerState extends State<MediapodMediaManager> {
         if (hasAssets)
           IconButton(
             icon: Icon(allSelected ? Icons.deselect : Icons.select_all),
-            onPressed: allSelected ? _controller.clearSelection : _controller.selectAll,
+            onPressed: allSelected
+                ? _controller.clearSelection
+                : _controller.selectAll,
             tooltip: allSelected ? 'Deselect All' : 'Select All',
           ),
         // Delete selected

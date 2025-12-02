@@ -225,14 +225,8 @@ class MediaTheme {
         fontSize: 16,
         fontWeight: FontWeight.w500,
       ),
-      subtitleStyle: const TextStyle(
-        color: Colors.black54,
-        fontSize: 14,
-      ),
-      captionStyle: const TextStyle(
-        color: Colors.black38,
-        fontSize: 12,
-      ),
+      subtitleStyle: const TextStyle(color: Colors.black54, fontSize: 14),
+      captionStyle: const TextStyle(color: Colors.black38, fontSize: 12),
       badgeStyle: const TextStyle(
         color: Colors.white,
         fontSize: 11,
@@ -292,7 +286,8 @@ class MediaTheme {
       gridSpacing: gridSpacing ?? this.gridSpacing,
       tileAspectRatio: tileAspectRatio ?? this.tileAspectRatio,
       iconSize: iconSize ?? this.iconSize,
-      selectionIndicatorSize: selectionIndicatorSize ?? this.selectionIndicatorSize,
+      selectionIndicatorSize:
+          selectionIndicatorSize ?? this.selectionIndicatorSize,
       selectionBorderWidth: selectionBorderWidth ?? this.selectionBorderWidth,
       animationDuration: animationDuration ?? this.animationDuration,
       animationCurve: animationCurve ?? this.animationCurve,
@@ -302,7 +297,8 @@ class MediaTheme {
       emptyStateBuilder: emptyStateBuilder ?? this.emptyStateBuilder,
       errorBuilder: errorBuilder ?? this.errorBuilder,
       loadingBuilder: loadingBuilder ?? this.loadingBuilder,
-      processingOverlayBuilder: processingOverlayBuilder ?? this.processingOverlayBuilder,
+      processingOverlayBuilder:
+          processingOverlayBuilder ?? this.processingOverlayBuilder,
     );
   }
 
@@ -346,12 +342,14 @@ class MediaThemeProvider extends InheritedWidget {
   });
 
   static MediaTheme of(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<MediaThemeProvider>();
+    final provider =
+        context.dependOnInheritedWidgetOfExactType<MediaThemeProvider>();
     return provider?.theme ?? const MediaTheme();
   }
 
   static MediaTheme? maybeOf(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<MediaThemeProvider>();
+    final provider =
+        context.dependOnInheritedWidgetOfExactType<MediaThemeProvider>();
     return provider?.theme;
   }
 

@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ancill/mediapod/services/media-worker/internal/processor"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"github.com/ancill/mediapod/services/media-worker/internal/processor"
 )
 
 const (

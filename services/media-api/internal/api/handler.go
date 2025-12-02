@@ -1,11 +1,11 @@
 package api
 
 import (
-	"github.com/go-redis/redis/v8"
 	"github.com/ancill/mediapod/services/media-api/internal/config"
 	"github.com/ancill/mediapod/services/media-api/internal/db"
 	"github.com/ancill/mediapod/services/media-api/internal/imgproxy"
 	"github.com/ancill/mediapod/services/media-api/internal/storage"
+	"github.com/go-redis/redis/v8"
 )
 
 type Handler struct {

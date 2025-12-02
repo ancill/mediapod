@@ -36,10 +36,12 @@ class UploadController extends ChangeNotifier {
 
   /// Tasks currently in queue or active
   List<UploadTask> get pendingTasks => allTasks
-      .where((t) =>
-          t.status == UploadStatus.queued ||
-          t.status == UploadStatus.uploading ||
-          t.status == UploadStatus.processing)
+      .where(
+        (t) =>
+            t.status == UploadStatus.queued ||
+            t.status == UploadStatus.uploading ||
+            t.status == UploadStatus.processing,
+      )
       .toList();
 
   /// Completed tasks
@@ -89,9 +91,13 @@ class UploadController extends ChangeNotifier {
         if (await file.exists()) {
           final xFile = XFile(pending.filePath);
           await enqueue(xFile, kind: AssetKind.fromString(pending.kind));
-          debugPrint('[UploadController] Restored pending upload: ${pending.fileName}');
+          debugPrint(
+            '[UploadController] Restored pending upload: ${pending.fileName}',
+          );
         } else {
-          debugPrint('[UploadController] File no longer exists: ${pending.filePath}');
+          debugPrint(
+            '[UploadController] File no longer exists: ${pending.filePath}',
+          );
           await _storage.removeTask(pending.taskId);
         }
       }
@@ -112,10 +118,7 @@ class UploadController extends ChangeNotifier {
   }
 
   /// Add a file to the upload queue
-  Future<UploadTask> enqueue(
-    XFile file, {
-    AssetKind? kind,
-  }) async {
+  Future<UploadTask> enqueue(XFile file, {AssetKind? kind}) async {
     final mimeType = lookupMimeType(file.name) ?? 'application/octet-stream';
     final fileSize = await file.length();
     final detectedKind = kind ?? _detectKind(mimeType);
@@ -160,10 +163,12 @@ class UploadController extends ChangeNotifier {
     final task = _tasks[taskId];
     if (task == null || !task.canCancel) return;
 
-    _updateTask(task.copyWith(
-      status: UploadStatus.cancelled,
-      completedAt: DateTime.now(),
-    ));
+    _updateTask(
+      task.copyWith(
+        status: UploadStatus.cancelled,
+        completedAt: DateTime.now(),
+      ),
+    );
 
     _queue.removeWhere((t) => t.id == taskId);
     _activeUploads.remove(taskId);
@@ -245,16 +250,22 @@ class UploadController extends ChangeNotifier {
 
       // Check file size - this is critical for debugging upload issues
       final fileSizeMB = bytes.length / (1024 * 1024);
-      debugPrint('Actual bytes read: ${bytes.length} (${fileSizeMB.toStringAsFixed(2)} MB)');
+      debugPrint(
+        'Actual bytes read: ${bytes.length} (${fileSizeMB.toStringAsFixed(2)} MB)',
+      );
 
       // Warning if file size doesn't match expected
       if (task.fileSize != null && bytes.length != task.fileSize) {
-        debugPrint('WARNING: Bytes read (${bytes.length}) does not match expected size (${task.fileSize})!');
+        debugPrint(
+          'WARNING: Bytes read (${bytes.length}) does not match expected size (${task.fileSize})!',
+        );
       }
 
       // Warning for suspiciously small files
       if (bytes.length < 1024) {
-        debugPrint('WARNING: File is very small (${bytes.length} bytes) - upload may have failed to read file');
+        debugPrint(
+          'WARNING: File is very small (${bytes.length} bytes) - upload may have failed to read file',
+        );
       }
 
       // Step 1: Initialize upload
@@ -295,7 +306,9 @@ class UploadController extends ChangeNotifier {
       _updateTask(task.copyWith(assetId: assetId, progress: 1.0));
 
       // Step 3: Complete upload
-      _updateTask(task.copyWith(assetId: assetId, status: UploadStatus.processing));
+      _updateTask(
+        task.copyWith(assetId: assetId, status: UploadStatus.processing),
+      );
       await client.completeUpload(assetId: assetId);
 
       // For videos, don't wait for processing - let it happen in background
@@ -303,27 +316,35 @@ class UploadController extends ChangeNotifier {
       // For images, they're marked ready immediately by the server
 
       // Mark as completed (even if video is still processing on server)
-      _updateTask(task.copyWith(
-        assetId: assetId,
-        status: UploadStatus.completed,
-        completedAt: DateTime.now(),
-      ));
+      _updateTask(
+        task.copyWith(
+          assetId: assetId,
+          status: UploadStatus.completed,
+          completedAt: DateTime.now(),
+        ),
+      );
     } on TimeoutException {
       debugPrint('Upload timeout for ${task.file.name}');
-      _updateTask(task.copyWith(
-        assetId: assetId,
-        status: UploadStatus.failed,
-        error: Exception('Upload timed out. Please try again with a smaller file or check your connection.'),
-        completedAt: DateTime.now(),
-      ));
+      _updateTask(
+        task.copyWith(
+          assetId: assetId,
+          status: UploadStatus.failed,
+          error: Exception(
+            'Upload timed out. Please try again with a smaller file or check your connection.',
+          ),
+          completedAt: DateTime.now(),
+        ),
+      );
     } catch (e) {
       debugPrint('Upload failed for ${task.file.name}: $e');
-      _updateTask(task.copyWith(
-        assetId: assetId,
-        status: UploadStatus.failed,
-        error: e,
-        completedAt: DateTime.now(),
-      ));
+      _updateTask(
+        task.copyWith(
+          assetId: assetId,
+          status: UploadStatus.failed,
+          error: e,
+          completedAt: DateTime.now(),
+        ),
+      );
     } finally {
       _activeUploads.remove(task.id);
       _processQueue();

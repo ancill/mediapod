@@ -27,7 +27,8 @@ void main() async {
   if (apiUrl == null || apiUrl.isEmpty) {
     print('Error: MEDIAPOD_API_URL environment variable is required');
     print(
-        'Example: MEDIAPOD_API_URL=https://media.example.com dart run example/example.dart');
+      'Example: MEDIAPOD_API_URL=https://media.example.com dart run example/example.dart',
+    );
     exit(1);
   }
 
@@ -44,7 +45,8 @@ void main() async {
     );
   } else {
     print(
-        'Note: ImgProxy not configured. Image optimization will not be available.');
+      'Note: ImgProxy not configured. Image optimization will not be available.',
+    );
   }
 
   try {

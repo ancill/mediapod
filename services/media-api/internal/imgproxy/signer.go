@@ -82,8 +82,8 @@ type ResizeOp struct {
 }
 
 type CropOp struct {
-	Width  int
-	Height int
+	Width   int
+	Height  int
 	Gravity string
 }
 

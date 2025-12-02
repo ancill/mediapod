@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 
-
 /// imgproxy URL signer for Dart clients
 class ImgProxySigner {
   final Uint8List key;
@@ -25,10 +24,7 @@ class ImgProxySigner {
   ///   sourceUrl: 's3://media-originals/path/to/image.jpg',
   /// );
   /// ```
-  String signUrl({
-    required String operations,
-    required String sourceUrl,
-  }) {
+  String signUrl({required String operations, required String sourceUrl}) {
     final encodedSource = _base64UrlEncode(utf8.encode(sourceUrl));
     final path = '/$operations/$encodedSource';
     final signature = _sign(path);

@@ -26,7 +26,7 @@ type Job struct {
 // InitUploadRequest represents the request to initialize an upload
 type InitUploadRequest struct {
 	MimeType string `json:"mime"`
-	Kind     string `json:"kind"`     // image, video, audio, document
+	Kind     string `json:"kind"` // image, video, audio, document
 	Filename string `json:"filename"`
 	Size     int64  `json:"size"`
 }
@@ -54,19 +54,19 @@ type CompleteUploadResponse struct {
 
 // AssetResponse represents an asset
 type AssetResponse struct {
-	ID          string                 `json:"id"`
-	Kind        string                 `json:"kind"`
-	State       string                 `json:"state"`
-	Filename    string                 `json:"filename"`
-	MimeType    string                 `json:"mimeType"`
-	Size        int64                  `json:"size"`
-	Bucket      string                 `json:"bucket"`
-	ObjectKey   string                 `json:"objectKey"`
-	Width       *int                   `json:"width,omitempty"`
-	Height      *int                   `json:"height,omitempty"`
-	Duration    *float64               `json:"duration,omitempty"`
-	CreatedAt   time.Time              `json:"createdAt"`
-	URLs        map[string]interface{} `json:"urls"`
+	ID        string                 `json:"id"`
+	Kind      string                 `json:"kind"`
+	State     string                 `json:"state"`
+	Filename  string                 `json:"filename"`
+	MimeType  string                 `json:"mimeType"`
+	Size      int64                  `json:"size"`
+	Bucket    string                 `json:"bucket"`
+	ObjectKey string                 `json:"objectKey"`
+	Width     *int                   `json:"width,omitempty"`
+	Height    *int                   `json:"height,omitempty"`
+	Duration  *float64               `json:"duration,omitempty"`
+	CreatedAt time.Time              `json:"createdAt"`
+	URLs      map[string]interface{} `json:"urls"`
 }
 
 // InitUpload handles POST /v1/media/init-upload
