@@ -1,283 +1,359 @@
 # Mediapod
 
-Drop-in media infrastructure for your project. Add to your docker-compose and get:
+Self-hosted media processing platform with S3-compatible storage, image optimization, and video transcoding.
 
-- **Image optimization** - On-the-fly WebP/AVIF conversion, resizing, thumbnails
-- **Video transcoding** - Automatic HLS adaptive streaming
-- **S3 storage** - Direct browser uploads with presigned URLs
-- **Simple API** - Upload, list, delete media assets
+**Easy to deploy**: Just add a few lines to your docker-compose, set environment variables, and you have a fully working media infrastructure.
+
+## Features
+
+- **S3-Compatible Storage** (MinIO) with presigned URLs for direct uploads
+- **Image Optimization** (imgproxy) - AVIF/WebP/JPEG with on-the-fly transforms
+- **Video Transcoding** (FFmpeg) - Multi-bitrate HLS adaptive streaming
+- **Direct Uploads** - Browser/mobile uploads directly to storage (no proxy)
+- **Signed URLs** - Secure access to private assets
+- **CDN Ready** - Works with Cloudflare or any CDN
+- **Horizontal Scaling** - Scale workers and API independently
+
+## Architecture
+
+```
+┌─────────────┐
+│   Clients   │
+│ (Web/Mobile)│
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│     Traefik / Reverse Proxy         │
+│     (Automatic SSL via Let's Encrypt)│
+└─────────┬───────────────────────────┘
+          │
+    ┌─────┴──────┬──────────┬──────────┐
+    ▼            ▼          ▼          ▼
+┌────────┐  ┌─────────┐ ┌──────┐  ┌──────┐
+│  API   │  │imgproxy │ │MinIO │  │Redis │
+│  (Go)  │  │         │ │ (S3) │  │Queue │
+└───┬────┘  └─────────┘ └──┬───┘  └──┬───┘
+    │                      │         │
+    └──────┬───────────────┴─────────┘
+           ▼
+    ┌──────────────┐
+    │   Worker     │
+    │  (FFmpeg)    │
+    └──────┬───────┘
+           │
+           ▼
+    ┌──────────────┐
+    │  PostgreSQL  │
+    └──────────────┘
+```
 
 ## Quick Start
 
-### 1. Add to your docker-compose.yml
+### 1. Configure Environment
 
-```yaml
-services:
-  # ... your existing services ...
+```bash
+# Copy and edit environment variables
+cp .env.example .env
 
-  # === MEDIAPOD START ===
-  mediapod-postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: mediapod
-      POSTGRES_USER: mediapod
-      POSTGRES_PASSWORD: ${MEDIAPOD_DB_PASSWORD}
-    volumes:
-      - mediapod-postgres:/var/lib/postgresql/data
-    networks:
-      - mediapod
+# Generate secure keys
+openssl rand -hex 32  # Use for IMGPROXY_KEY
+openssl rand -hex 32  # Use for IMGPROXY_SALT
 
-  mediapod-redis:
-    image: redis:7-alpine
-    volumes:
-      - mediapod-redis:/data
-    networks:
-      - mediapod
-
-  mediapod-minio:
-    image: minio/minio:latest
-    command: server /data --console-address :9001
-    environment:
-      MINIO_ROOT_USER: ${MEDIAPOD_S3_USER}
-      MINIO_ROOT_PASSWORD: ${MEDIAPOD_S3_PASSWORD}
-    volumes:
-      - mediapod-minio:/data
-    networks:
-      - mediapod
-    ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Console (optional)
-
-  mediapod-minio-init:
-    image: minio/mc:latest
-    depends_on:
-      - mediapod-minio
-    entrypoint: >
-      /bin/sh -c "
-      sleep 5;
-      mc alias set minio http://mediapod-minio:9000 ${MEDIAPOD_S3_USER} ${MEDIAPOD_S3_PASSWORD};
-      mc mb --ignore-existing minio/media-originals;
-      mc mb --ignore-existing minio/media-vod;
-      mc anonymous set public minio/media-vod;
-      exit 0;
-      "
-    networks:
-      - mediapod
-
-  mediapod-imgproxy:
-    image: darthsim/imgproxy:latest
-    environment:
-      IMGPROXY_KEY: ${MEDIAPOD_IMGPROXY_KEY}
-      IMGPROXY_SALT: ${MEDIAPOD_IMGPROXY_SALT}
-      IMGPROXY_USE_S3: "true"
-      IMGPROXY_S3_ENDPOINT: http://mediapod-minio:9000
-      AWS_ACCESS_KEY_ID: ${MEDIAPOD_S3_USER}
-      AWS_SECRET_ACCESS_KEY: ${MEDIAPOD_S3_PASSWORD}
-    networks:
-      - mediapod
-    ports:
-      - "8081:8080"   # Image proxy
-
-  mediapod-api:
-    image: ghcr.io/ancill/mediapod-api:latest
-    environment:
-      DATABASE_URL: postgres://mediapod:${MEDIAPOD_DB_PASSWORD}@mediapod-postgres:5432/mediapod?sslmode=disable
-      REDIS_URL: redis://mediapod-redis:6379/0
-      MINIO_ENDPOINT: mediapod-minio:9000
-      MINIO_ACCESS_KEY: ${MEDIAPOD_S3_USER}
-      MINIO_SECRET_KEY: ${MEDIAPOD_S3_PASSWORD}
-      PUBLIC_MINIO_ENDPOINT: ${MEDIAPOD_PUBLIC_S3_URL}
-      IMGPROXY_KEY: ${MEDIAPOD_IMGPROXY_KEY}
-      IMGPROXY_SALT: ${MEDIAPOD_IMGPROXY_SALT}
-      PUBLIC_IMGPROXY_URL: ${MEDIAPOD_PUBLIC_IMGPROXY_URL}
-      PUBLIC_VOD_URL: ${MEDIAPOD_PUBLIC_VOD_URL}
-    depends_on:
-      - mediapod-postgres
-      - mediapod-redis
-      - mediapod-minio
-    networks:
-      - mediapod
-    ports:
-      - "8080:8080"   # API
-
-  mediapod-worker:
-    image: ghcr.io/ancill/mediapod-worker:latest
-    environment:
-      DATABASE_URL: postgres://mediapod:${MEDIAPOD_DB_PASSWORD}@mediapod-postgres:5432/mediapod?sslmode=disable
-      REDIS_URL: redis://mediapod-redis:6379/0
-      MINIO_ENDPOINT: mediapod-minio:9000
-      MINIO_ACCESS_KEY: ${MEDIAPOD_S3_USER}
-      MINIO_SECRET_KEY: ${MEDIAPOD_S3_PASSWORD}
-    depends_on:
-      - mediapod-postgres
-      - mediapod-redis
-      - mediapod-minio
-    networks:
-      - mediapod
-  # === MEDIAPOD END ===
-
-volumes:
-  mediapod-postgres:
-  mediapod-redis:
-  mediapod-minio:
-
-networks:
-  mediapod:
+# Edit .env with your domains and secrets
+nano .env
 ```
 
-### 2. Add environment variables
+### 2. Required Environment Variables
 
 ```env
-# Database
-MEDIAPOD_DB_PASSWORD=change_me_secure_password
+# Your domains (must point to your server)
+MEDIAPOD_API_DOMAIN=media.yourdomain.com
+MEDIAPOD_IMG_DOMAIN=img.yourdomain.com
+MEDIAPOD_VOD_DOMAIN=vod.yourdomain.com
+MEDIAPOD_S3_DOMAIN=s3.yourdomain.com
 
-# S3 Storage
-MEDIAPOD_S3_USER=mediapod
-MEDIAPOD_S3_PASSWORD=change_me_secure_password
-
-# Image proxy signing (generate with: openssl rand -hex 32)
-MEDIAPOD_IMGPROXY_KEY=your_64_char_hex_key
-MEDIAPOD_IMGPROXY_SALT=your_64_char_hex_salt
-
-# Public URLs (how clients access services)
-MEDIAPOD_PUBLIC_S3_URL=localhost:9000
-MEDIAPOD_PUBLIC_IMGPROXY_URL=http://localhost:8081
-MEDIAPOD_PUBLIC_VOD_URL=http://localhost:9000/media-vod
+# Secrets (generate secure values!)
+DB_PASSWORD=your_secure_password
+MINIO_ROOT_USER=mediapod
+MINIO_ROOT_PASSWORD=your_secure_password
+IMGPROXY_KEY=<generated_hex>
+IMGPROXY_SALT=<generated_hex>
 ```
 
-### 3. Start
+### 3. Start Services
 
 ```bash
+# Start all services
 docker compose up -d
+
+# Check status
+docker compose ps
+
+# View logs
+docker compose logs -f media-api
+docker compose logs -f media-worker
 ```
 
-### 4. Verify
+### 4. Verify Deployment
 
 ```bash
-curl http://localhost:8080/health
-# {"status":"ok"}
+# Health check
+curl https://media.yourdomain.com/health
+
+# Test API
+curl https://media.yourdomain.com/v1/media
+```
+
+## DNS Configuration
+
+Create these DNS records pointing to your server:
+
+| Type | Name  | Content        |
+| ---- | ----- | -------------- |
+| A    | media | YOUR_SERVER_IP |
+| A    | img   | YOUR_SERVER_IP |
+| A    | vod   | YOUR_SERVER_IP |
+| A    | s3    | YOUR_SERVER_IP |
+
+If using Cloudflare, enable proxy (orange cloud) for caching benefits.
+
+## GitHub Actions Secrets
+
+For automated deployment, add these secrets to your GitHub repository:
+
+```
+MEDIA_DB_PASSWORD
+MINIO_ROOT_USER
+MINIO_ROOT_PASSWORD
+IMGPROXY_KEY
+IMGPROXY_SALT
+MEDIAPOD_API_DOMAIN
+MEDIAPOD_IMG_DOMAIN
+MEDIAPOD_VOD_DOMAIN
+MEDIAPOD_S3_DOMAIN
 ```
 
 ## API Usage
 
-### Upload a file
+### Base URL
 
-```bash
-# 1. Get presigned URL
-curl -X POST http://localhost:8080/v1/media/init-upload \
-  -H "Content-Type: application/json" \
-  -d '{"mime":"image/jpeg","kind":"image","filename":"photo.jpg","size":12345}'
+`https://media.yourdomain.com/v1`
 
-# Response: { "assetId": "abc123", "presignedUrl": "http://...", "expiresIn": 900 }
+### Upload Flow
 
-# 2. Upload directly to S3
-curl -X PUT "<presignedUrl>" \
-  -H "Content-Type: image/jpeg" \
-  --data-binary @photo.jpg
+**1. Initialize Upload**
 
-# 3. Mark complete
-curl -X POST http://localhost:8080/v1/media/complete \
-  -H "Content-Type: application/json" \
-  -d '{"assetId":"abc123"}'
+```http
+POST /v1/media/init-upload
+Content-Type: application/json
+
+{
+  "mime": "image/jpeg",
+  "kind": "image",
+  "filename": "photo.jpg",
+  "size": 1024000
+}
+
+Response:
+{
+  "assetId": "abc-123-def-456",
+  "presignedUrl": "https://s3.yourdomain.com/...",
+  "headers": { "Content-Type": "image/jpeg" },
+  "expiresIn": 900
+}
 ```
 
-### Get optimized image URL
+**2. Upload File (Direct to S3)**
 
-```bash
-curl http://localhost:8080/v1/media/abc123
-# Response includes imgproxy URLs for different sizes
+```http
+PUT {presignedUrl}
+Content-Type: image/jpeg
+
+[binary file data]
 ```
 
-### List assets
+**3. Complete Upload**
 
-```bash
-curl http://localhost:8080/v1/media
+```http
+POST /v1/media/complete
+Content-Type: application/json
+
+{ "assetId": "abc-123-def-456" }
+
+Response:
+{
+  "state": "ready",  // or "processing" for videos
+  "message": "Upload completed successfully"
+}
 ```
 
-### Delete asset
+**4. Get Asset**
 
-```bash
-curl -X DELETE http://localhost:8080/v1/media/abc123
+```http
+GET /v1/media/{assetId}
+
+Response:
+{
+  "id": "abc-123-def-456",
+  "kind": "image",
+  "state": "ready",
+  "urls": {
+    "thumbnail": "https://img.yourdomain.com/...",
+    "original": "https://media.yourdomain.com/v1/media/{id}/original"
+  }
+}
+```
+
+### Other Endpoints
+
+```http
+GET  /v1/media              - List all assets
+DELETE /v1/media/{assetId}  - Delete asset
+GET  /v1/video/{assetId}/master.m3u8  - Get HLS manifest
 ```
 
 ## Client Libraries
 
 ### Dart/Flutter
 
-```yaml
-dependencies:
-  mediapod_client: ^1.0.0
-```
-
 ```dart
 import 'package:mediapod_client/mediapod_client.dart';
 
-final client = MediapodClient(baseUrl: 'http://localhost:8080');
+final client = MediapodClient(
+  baseUrl: 'https://media.yourdomain.com',
+);
 
-// Upload file
+// Upload
 final asset = await client.uploadFileComplete(
-  filePath: 'photo.jpg',
+  filePath: '/path/to/file.jpg',
   kind: 'image',
   mime: 'image/jpeg',
+  onProgress: (sent, total) => print('${(sent/total*100).toStringAsFixed(1)}%'),
 );
 
-// Get optimized image URL
-final signer = ImgProxySigner(
-  keyHex: 'your_key',
-  saltHex: 'your_salt',
-  baseUrl: 'http://localhost:8081',
-);
-final imageUrl = signer.buildImageUrl(
-  bucket: asset.bucket,
-  objectKey: asset.objectKey,
-  width: 400,
-  format: 'webp',
-);
+print('Uploaded! ID: ${asset.id}');
 ```
 
-### Flutter Widgets
+See `dart-client/README.md` for full documentation.
 
-```yaml
-dependencies:
-  mediapod_flutter: ^1.0.0
-```
+### Flutter Widget
 
 ```dart
 import 'package:mediapod_flutter/mediapod_flutter.dart';
 
-// Display optimized image
-MediapodImage(
-  asset: asset,
-  signer: signer,
-  width: 400,
-)
-
-// Full media manager with upload
-MediapodMediaManager(
-  client: client,
-  signer: signer,
+MediapodUploader(
+  client: mediapodClient,
+  onUploadComplete: (asset) {
+    print('Upload complete: ${asset.id}');
+  },
 )
 ```
 
-## Production Setup
+See `flutter-widget/README.md` for full documentation.
 
-For production with Traefik and HTTPS, see [docker-compose.example.yml](docker-compose.example.yml).
+## Systemd Service (Production)
 
-Key differences:
-- Uses Traefik labels instead of port mappings
-- Automatic SSL via Let's Encrypt
-- Separate domains for API, images, VOD, S3
+Install as a systemd service for automatic startup:
 
-## Architecture
+```bash
+# Copy service file
+sudo cp systemd/mediapod.service /etc/systemd/system/
 
+# Edit paths in service file
+sudo nano /etc/systemd/system/mediapod.service
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable mediapod
+sudo systemctl start mediapod
+
+# Check status
+sudo systemctl status mediapod
+journalctl -u mediapod -f
 ```
-Client → API (upload init) → S3 (direct upload) → API (complete)
-                                                      ↓
-                                              Worker (transcode)
-                                                      ↓
-                                              S3 (HLS output)
 
-Client → imgproxy → S3 (on-the-fly image optimization)
+## Operations
+
+### View Logs
+
+```bash
+docker compose logs -f media-api
+docker compose logs -f media-worker
+```
+
+### Scale Workers
+
+```bash
+docker compose up -d --scale media-worker=4
+```
+
+### Backup Database
+
+```bash
+docker compose exec postgres pg_dump -U mediapod mediapod > backup.sql
+```
+
+### Backup MinIO
+
+```bash
+mc alias set prod https://s3.yourdomain.com mediapod your_password
+mc mirror prod/media-originals /backup/media-originals
+mc mirror prod/media-vod /backup/media-vod
+```
+
+## Troubleshooting
+
+### Videos stuck in "processing"
+
+```bash
+# Check worker logs
+docker compose logs media-worker
+
+# Check Redis queue
+docker compose exec redis redis-cli LLEN media:jobs:pending
+```
+
+### Images not transforming
+
+```bash
+# Check imgproxy logs
+docker compose logs imgproxy
+```
+
+### Upload fails
+
+```bash
+# Check MinIO health
+docker compose exec minio curl http://localhost:9000/minio/health/live
+
+# Check API logs
+docker compose logs media-api | grep ERROR
+```
+
+## Development
+
+### Build Go Services Locally
+
+```bash
+cd services/media-api
+go mod tidy
+go run cmd/server/main.go
+
+cd ../media-worker
+go mod tidy
+go run cmd/worker/main.go
+```
+
+### Run Tests
+
+```bash
+cd services/media-api
+go test ./...
+
+cd dart-client
+dart pub get
+dart test
 ```
 
 ## License
