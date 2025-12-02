@@ -285,7 +285,7 @@
     },
     {
       "name": "mediapod_client",
-      "rootUri": "../../dart-client",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/mediapod_client-1.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },

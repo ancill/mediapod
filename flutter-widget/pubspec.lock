@@ -371,9 +371,10 @@ packages:
   mediapod_client:
     dependency: "direct main"
     description:
-      path: "../dart-client"
-      relative: true
-    source: path
+      name: mediapod_client
+      sha256: "85689dccfc3b0a7bf1a0f5b808159ef87c1dafc1ebadba594942ec7f57e4720b"
+      url: "https://pub.dev"
+    source: hosted
     version: "1.0.0"
   meta:
     dependency: transitive
