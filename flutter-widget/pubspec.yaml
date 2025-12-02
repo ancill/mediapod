@@ -30,8 +30,8 @@ dependencies:
   cached_network_image: ^3.3.1
 
   # File picking
-  image_picker: ^1.0.7
-  file_picker: ^6.1.1
+  image_picker: ^1.1.2
+  file_picker: ^10.3.7
 
   # Video player
   video_player: ^2.8.3
@@ -39,15 +39,15 @@ dependencies:
   chewie: ^1.7.4
 
   # Image viewing
-  photo_view: ^0.14.0
+  photo_view: ^0.15.0
 
   # UI helpers
   shimmer: ^3.0.0
 
   # Utilities
-  uuid: ^4.3.3
-  mime: ^1.0.5
-  path: ^1.9.0
+  uuid: ^4.5.1
+  mime: ^2.0.0
+  path: ^1.9.1
   collection: ^1.18.0
 
   # Storage for offline queue
@@ -56,7 +56,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  mocktail: ^1.0.3
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
 
 flutter:

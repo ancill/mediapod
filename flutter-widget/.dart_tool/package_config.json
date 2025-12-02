@@ -111,9 +111,9 @@
     },
     {
       "name": "file_picker",
-      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/file_picker-6.2.1",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/file_picker-10.3.7",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.4"
     },
     {
       "name": "file_selector_linux",
@@ -159,9 +159,9 @@
     },
     {
       "name": "flutter_lints",
-      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/flutter_lints-3.0.2",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/flutter_lints-6.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_plugin_android_lifecycle",
@@ -267,9 +267,9 @@
     },
     {
       "name": "lints",
-      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/lints-3.0.0",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/lints-6.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.0"
+      "languageVersion": "3.8"
     },
     {
       "name": "matcher",
@@ -297,7 +297,7 @@
     },
     {
       "name": "mime",
-      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/mime-1.0.6",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/mime-2.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -381,7 +381,7 @@
     },
     {
       "name": "photo_view",
-      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/photo_view-0.14.0",
+      "rootUri": "file:///Users/ivan/.pub-cache/hosted/pub.dev/photo_view-0.15.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
