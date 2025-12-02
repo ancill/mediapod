@@ -59,14 +59,17 @@ jobs:
             echo "No test directory found, skipping tests"
           fi
 
+      - name: Setup pub.dev credentials
+        run: |
+          mkdir -p ~/.config/dart
+          echo '${{ secrets.PUB_CREDENTIALS }}' > ~/.config/dart/pub-credentials.json
+
       - name: Check publish readiness
         run: dart pub publish --dry-run
 
       - name: Publish to pub.dev
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false')
         run: dart pub publish --force
-        env:
-          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
 
   publish-flutter-widget:
     name: Publish mediapod_flutter to pub.dev
@@ -102,14 +105,17 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Setup pub.dev credentials
+        run: |
+          mkdir -p ~/.config/dart
+          echo '${{ secrets.PUB_CREDENTIALS }}' > ~/.config/dart/pub-credentials.json
+
       - name: Check publish readiness
         run: flutter pub publish --dry-run
 
       - name: Publish to pub.dev
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false')
         run: flutter pub publish --force
-        env:
-          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
 
   publish-summary:
     name: Publish Summary
