@@ -1,0 +1,28 @@
+name: mediapod_client
+description: >-
+  Dart client for Mediapod - a self-hosted media service. Upload images and videos,
+  generate signed imgproxy URLs for image transformations, and manage media assets.
+  Deploy with Docker, integrate with Flutter.
+version: 1.0.0
+repository: https://github.com/ancill/mediapod
+issue_tracker: https://github.com/ancill/mediapod/issues
+homepage: https://github.com/ancill/mediapod
+
+topics:
+  - media
+  - upload
+  - image-processing
+  - s3
+  - api-client
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  http: ^1.2.0
+  crypto: ^3.0.3
+  web: ^1.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.24.0

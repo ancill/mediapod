@@ -1,0 +1,19 @@
+name: mediapod_flutter_example
+description: Example app for mediapod_flutter
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mediapod_flutter:
+    path: ..
+
+dev_dependencies:
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true

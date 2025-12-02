@@ -1,0 +1,298 @@
+# Mediapod Stack - Production (Traefik Integration)
+#
+# Self-hosted media processing platform with S3-compatible storage,
+# image transformations, and video transcoding.
+#
+# Prerequisites:
+#   - Traefik reverse proxy running with certresolver configured
+#   - External network created (default: mediapod-network)
+#
+# Usage:
+#   1. Copy .env.example to .env and configure your domains/secrets
+#   2. docker compose up -d
+#
+# Required environment variables:
+#   - MEDIAPOD_API_DOMAIN (e.g., media.yourdomain.com)
+#   - MEDIAPOD_IMG_DOMAIN (e.g., img.yourdomain.com)
+#   - MEDIAPOD_VOD_DOMAIN (e.g., vod.yourdomain.com)
+#   - MEDIAPOD_S3_DOMAIN (e.g., s3.yourdomain.com)
+
+services:
+  # PostgreSQL database (internal only)
+  postgres:
+    image: postgres:16-alpine
+    container_name: mediapod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mediapod
+      POSTGRES_USER: mediapod
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    ports:
+      - "${POSTGRES_HOST_PORT:-127.0.0.1:5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mediapod -d mediapod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=false"
+
+  # Redis for job queue (internal only)
+  redis:
+    image: redis:7-alpine
+    container_name: mediapod-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-127.0.0.1:6380}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=false"
+
+  # MinIO S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: mediapod-minio
+    restart: unless-stopped
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_CONSOLE_URL:-}
+      MINIO_SERVER_URL: https://${MEDIAPOD_S3_DOMAIN:?MEDIAPOD_S3_DOMAIN is required}
+    ports:
+      - "${MINIO_CONSOLE_HOST_PORT:-127.0.0.1:9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=true"
+      # VOD streaming
+      - "traefik.http.routers.mediapod-vod.rule=Host(`${MEDIAPOD_VOD_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-vod.entrypoints=websecure"
+      - "traefik.http.routers.mediapod-vod.service=mediapod-vod-service"
+      - "traefik.http.routers.mediapod-vod.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}"
+      - "traefik.http.routers.mediapod-vod.middlewares=mediapod-vod-path@docker,mediapod-vod-headers@docker"
+      - "traefik.http.services.mediapod-vod-service.loadbalancer.server.port=9000"
+      # VOD HTTP redirect
+      - "traefik.http.routers.mediapod-vod-http.rule=Host(`${MEDIAPOD_VOD_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-vod-http.entrypoints=web"
+      - "traefik.http.routers.mediapod-vod-http.service=mediapod-vod-service"
+      - "traefik.http.routers.mediapod-vod-http.middlewares=mediapod-redirect-https"
+      # VOD Path middleware - add /media-vod prefix
+      - "traefik.http.middlewares.mediapod-vod-path.addprefix.prefix=/media-vod"
+      # VOD Middleware for CORS and caching
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.accesscontrolallowmethods=GET,HEAD,OPTIONS"
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.accesscontrolallowheaders=Range,Content-Type"
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.accesscontrolexposeheaders=Content-Length,Content-Range"
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.customresponseheaders.Cache-Control=public, max-age=3600"
+      - "traefik.http.middlewares.mediapod-vod-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+      # S3 API for uploads - direct access without path prefix
+      - "traefik.http.routers.mediapod-s3.rule=Host(`${MEDIAPOD_S3_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-s3.entrypoints=websecure"
+      - "traefik.http.routers.mediapod-s3.service=mediapod-s3-service"
+      - "traefik.http.routers.mediapod-s3.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}"
+      - "traefik.http.routers.mediapod-s3.middlewares=mediapod-s3-headers@docker"
+      - "traefik.http.services.mediapod-s3-service.loadbalancer.server.port=9000"
+      # S3 HTTP redirect
+      - "traefik.http.routers.mediapod-s3-http.rule=Host(`${MEDIAPOD_S3_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-s3-http.entrypoints=web"
+      - "traefik.http.routers.mediapod-s3-http.service=mediapod-s3-service"
+      - "traefik.http.routers.mediapod-s3-http.middlewares=mediapod-redirect-https"
+      # S3 CORS headers for uploads
+      - "traefik.http.middlewares.mediapod-s3-headers.headers.accesscontrolallowmethods=GET,PUT,POST,DELETE,OPTIONS,HEAD"
+      - "traefik.http.middlewares.mediapod-s3-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.mediapod-s3-headers.headers.accesscontrolallowheaders=*"
+      - "traefik.http.middlewares.mediapod-s3-headers.headers.accesscontrolexposeheaders=ETag,Content-Length"
+      - "traefik.http.middlewares.mediapod-s3-headers.headers.accesscontrolmaxage=3600"
+
+  # MinIO client for bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: mediapod-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb --ignore-existing myminio/media-originals;
+      /usr/bin/mc mb --ignore-existing myminio/media-images;
+      /usr/bin/mc mb --ignore-existing myminio/media-vod;
+      /usr/bin/mc mb --ignore-existing myminio/media-thumbs;
+      /usr/bin/mc anonymous set public myminio/media-images;
+      /usr/bin/mc anonymous set public myminio/media-vod;
+      /usr/bin/mc anonymous set public myminio/media-thumbs;
+      echo 'MinIO buckets initialized';
+      exit 0;
+      "
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=false"
+
+  # imgproxy for image transformations
+  imgproxy:
+    image: darthsim/imgproxy:latest
+    container_name: mediapod-imgproxy
+    restart: unless-stopped
+    environment:
+      IMGPROXY_KEY: ${IMGPROXY_KEY:?IMGPROXY_KEY is required}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:?IMGPROXY_SALT is required}
+      IMGPROXY_AUTO_WEBP: "true"
+      IMGPROXY_AUTO_AVIF: "true"
+      IMGPROXY_ENFORCE_AVIF: "false"
+      IMGPROXY_ENFORCE_WEBP: "false"
+      IMGPROXY_MAX_SRC_RESOLUTION: "100"
+      IMGPROXY_ALLOWED_SOURCES: "s3://media-originals/,s3://media-images/,s3://media-thumbs/"
+      IMGPROXY_USE_S3: "true"
+      IMGPROXY_S3_ENDPOINT: http://mediapod-minio:9000
+      IMGPROXY_S3_REGION: us-east-1
+      IMGPROXY_AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      IMGPROXY_AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      IMGPROXY_USE_PATH_STYLE: "true"
+      IMGPROXY_LOG_LEVEL: info
+    depends_on:
+      - minio
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=true"
+      # Image proxy
+      - "traefik.http.routers.mediapod-imgproxy.rule=Host(`${MEDIAPOD_IMG_DOMAIN:?MEDIAPOD_IMG_DOMAIN is required}`)"
+      - "traefik.http.routers.mediapod-imgproxy.entrypoints=websecure"
+      - "traefik.http.routers.mediapod-imgproxy.service=mediapod-imgproxy-service"
+      - "traefik.http.routers.mediapod-imgproxy.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}"
+      - "traefik.http.routers.mediapod-imgproxy.middlewares=mediapod-imgproxy-headers"
+      - "traefik.http.services.mediapod-imgproxy-service.loadbalancer.server.port=8080"
+      # HTTP redirect
+      - "traefik.http.routers.mediapod-imgproxy-http.rule=Host(`${MEDIAPOD_IMG_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-imgproxy-http.entrypoints=web"
+      - "traefik.http.routers.mediapod-imgproxy-http.middlewares=mediapod-redirect-https"
+      # Middleware for CORS and caching
+      - "traefik.http.middlewares.mediapod-imgproxy-headers.headers.accesscontrolallowmethods=GET,OPTIONS"
+      - "traefik.http.middlewares.mediapod-imgproxy-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.mediapod-imgproxy-headers.headers.customresponseheaders.Cache-Control=public, max-age=31536000, immutable"
+      - "traefik.http.middlewares.mediapod-imgproxy-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+
+  # Media API (Go service)
+  media-api:
+    build:
+      context: ./services/media-api
+      dockerfile: Dockerfile
+    image: ${MEDIAPOD_API_IMAGE:-mediapod/api:latest}
+    container_name: mediapod-api
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://mediapod:${DB_PASSWORD}@mediapod-postgres:5432/mediapod?sslmode=disable
+      MINIO_ENDPOINT: mediapod-minio:9000
+      PUBLIC_MINIO_ENDPOINT: ${MEDIAPOD_S3_DOMAIN}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_USE_SSL: "false"
+      MINIO_USE_PATH_STYLE: "true"
+      REDIS_URL: redis://mediapod-redis:6379/0
+      IMGPROXY_KEY: ${IMGPROXY_KEY}
+      IMGPROXY_SALT: ${IMGPROXY_SALT}
+      IMGPROXY_BASE_URL: https://${MEDIAPOD_IMG_DOMAIN}
+      PUBLIC_IMGPROXY_URL: https://${MEDIAPOD_IMG_DOMAIN}
+      PUBLIC_VOD_URL: https://${MEDIAPOD_VOD_DOMAIN}
+      PUBLIC_THUMBS_URL: https://${MEDIAPOD_S3_DOMAIN}/media-thumbs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=true"
+      # Media API
+      - "traefik.http.routers.mediapod-api.rule=Host(`${MEDIAPOD_API_DOMAIN:?MEDIAPOD_API_DOMAIN is required}`)"
+      - "traefik.http.routers.mediapod-api.entrypoints=websecure"
+      - "traefik.http.routers.mediapod-api.service=mediapod-api-service"
+      - "traefik.http.routers.mediapod-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-myresolver}"
+      - "traefik.http.routers.mediapod-api.middlewares=mediapod-api-headers"
+      - "traefik.http.services.mediapod-api-service.loadbalancer.server.port=8080"
+      # HTTP redirect
+      - "traefik.http.routers.mediapod-api-http.rule=Host(`${MEDIAPOD_API_DOMAIN}`)"
+      - "traefik.http.routers.mediapod-api-http.entrypoints=web"
+      - "traefik.http.routers.mediapod-api-http.middlewares=mediapod-redirect-https"
+      # HTTP to HTTPS redirect middleware
+      - "traefik.http.middlewares.mediapod-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.mediapod-redirect-https.redirectscheme.permanent=true"
+      # Middleware for CORS
+      - "traefik.http.middlewares.mediapod-api-headers.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.middlewares.mediapod-api-headers.headers.accesscontrolalloworiginlist=*"
+      - "traefik.http.middlewares.mediapod-api-headers.headers.accesscontrolallowheaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.mediapod-api-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+
+  # Media Worker (FFmpeg transcoding)
+  media-worker:
+    build:
+      context: ./services/media-worker
+      dockerfile: Dockerfile
+    image: ${MEDIAPOD_WORKER_IMAGE:-mediapod/worker:latest}
+    container_name: mediapod-worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://mediapod:${DB_PASSWORD}@mediapod-postgres:5432/mediapod?sslmode=disable
+      MINIO_ENDPOINT: mediapod-minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_USE_SSL: "false"
+      REDIS_URL: redis://mediapod-redis:6379/0
+      WORKER_CONCURRENCY: "${WORKER_CONCURRENCY:-2}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - worker-tmp:/tmp/worker
+    networks:
+      - ${MEDIAPOD_NETWORK:-mediapod-network}
+    labels:
+      - "traefik.enable=false"
+
+volumes:
+  postgres-data:
+  minio-data:
+  redis-data:
+  worker-tmp:
+
+networks:
+  mediapod-network:
+    name: ${MEDIAPOD_NETWORK:-mediapod-network}
+    external: ${MEDIAPOD_NETWORK_EXTERNAL:-false}

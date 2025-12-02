@@ -1,0 +1,13 @@
+FROM dart:stable
+
+WORKDIR /app
+
+# Copy pubspec files
+COPY pubspec.yaml ./
+RUN dart pub get
+
+# Copy source
+COPY lib/ ./lib/
+COPY bin/ ./bin/
+
+CMD ["dart", "run", "bin/upload_products.dart"]

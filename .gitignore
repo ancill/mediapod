@@ -1,0 +1,5 @@
+.env
+
+# SSL certificates (if using custom certs)
+nginx/ssl/*.pem
+nginx/ssl/*.key

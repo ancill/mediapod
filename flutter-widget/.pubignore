@@ -1,0 +1,30 @@
+# Exclude example app from pub package
+example/
+
+# Test files (optional - uncomment to exclude)
+# test/
+
+# Development files
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Build outputs
+build/
+
+# Coverage
+coverage/
+
+# Temporary files
+*.log
+*.tmp

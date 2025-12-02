@@ -1,0 +1,68 @@
+name: mediapod_flutter
+description: >-
+  Flutter widgets for Mediapod - a self-hosted media service. Upload, display, and
+  manage media assets with imgproxy optimization and HLS video streaming. Deploy the
+  backend with Docker, integrate seamlessly with Flutter.
+version: 1.0.0
+repository: https://github.com/ancill/mediapod
+issue_tracker: https://github.com/ancill/mediapod/issues
+homepage: https://github.com/ancill/mediapod
+# Remove this line when ready to publish:
+# publish_to: none
+
+topics:
+  - media
+  - upload
+  - image
+  - video
+  - widget
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core client
+  # For local development, use path:
+  mediapod_client:
+    path: ../dart-client
+  # For pub.dev publication, replace with:
+  # mediapod_client: ^1.0.0
+
+  # Image loading and caching
+  cached_network_image: ^3.3.1
+
+  # File picking
+  image_picker: ^1.0.7
+  file_picker: ^6.1.1
+
+  # Video player
+  video_player: ^2.8.3
+  video_player_web_hls: ^1.1.1
+  chewie: ^1.7.4
+
+  # Image viewing
+  photo_view: ^0.14.0
+
+  # UI helpers
+  shimmer: ^3.0.0
+
+  # Utilities
+  uuid: ^4.3.3
+  mime: ^1.0.5
+  path: ^1.9.0
+  collection: ^1.18.0
+
+  # Storage for offline queue
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  mocktail: ^1.0.3
+
+flutter:

@@ -1,0 +1,57 @@
+# Mediapod Stack - Systemd Service
+#
+# This service manages the Mediapod docker-compose stack.
+# It ensures the media services start on boot and restart on failure.
+#
+# Installation:
+#   1. Copy this file to /etc/systemd/system/mediapod.service
+#   2. Create environment file at /path/to/mediapod/.env
+#   3. Update WorkingDirectory and EnvironmentFile paths below
+#   4. Enable and start the service:
+#      sudo systemctl daemon-reload
+#      sudo systemctl enable mediapod
+#      sudo systemctl start mediapod
+#
+# Commands:
+#   sudo systemctl status mediapod   # Check status
+#   sudo systemctl restart mediapod  # Restart
+#   sudo systemctl stop mediapod     # Stop
+#   journalctl -u mediapod -f        # View logs
+
+[Unit]
+Description=Mediapod Stack (Docker Compose)
+Documentation=https://github.com/ancill/mediapod
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# UPDATE THIS PATH to your mediapod installation directory
+WorkingDirectory=/opt/mediapod
+
+# Load environment variables from .env file
+# UPDATE THIS PATH to your .env file location
+EnvironmentFile=/opt/mediapod/.env
+
+# Start services
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+
+# Stop services (graceful shutdown with 60s timeout)
+ExecStop=/usr/bin/docker compose down --timeout 60
+
+# Restart policy
+Restart=on-failure
+RestartSec=30
+
+# Security hardening
+NoNewPrivileges=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mediapod
+
+[Install]
+WantedBy=multi-user.target

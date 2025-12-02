@@ -1,0 +1,150 @@
+name: Deploy Mediapod Stack to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Target environment"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - "production"
+
+jobs:
+  deploy:
+    name: Deploy Mediapod Stack (Self-Hosted)
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: false
+
+      - name: Clean up orphaned containers
+        run: |
+          echo "Cleaning up any orphaned containers..."
+          # Find and remove old mediapod containers
+          orphaned_containers=$(docker ps -a --filter "name=mediapod-" --format "{{.ID}} {{.Names}}" || true)
+          if [ -n "$orphaned_containers" ]; then
+            echo "  - Found orphaned containers:"
+            echo "$orphaned_containers" | while IFS= read -r line; do
+              container_id=$(echo "$line" | awk '{print $1}')
+              container_name=$(echo "$line" | awk '{print $2}')
+              echo "    - Removing: $container_name ($container_id)"
+              docker rm -f "$container_id" 2>/dev/null || true
+            done
+          else
+            echo "  - No orphaned containers found"
+          fi
+          echo "Done cleaning up"
+
+      - name: Pull latest images
+        run: |
+          echo "Pulling latest Docker images..."
+          docker compose -f docker-compose.yml pull postgres redis minio imgproxy
+          echo "Images pulled"
+
+      - name: Build media services
+        run: |
+          echo "Building media-api and media-worker..."
+          docker compose -f docker-compose.yml build --no-cache media-api media-worker
+          echo "Services built"
+
+      - name: Start media stack
+        env:
+          DB_PASSWORD: ${{ secrets.MEDIA_DB_PASSWORD }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+          IMGPROXY_KEY: ${{ secrets.IMGPROXY_KEY }}
+          IMGPROXY_SALT: ${{ secrets.IMGPROXY_SALT }}
+          MEDIAPOD_API_DOMAIN: ${{ secrets.MEDIAPOD_API_DOMAIN }}
+          MEDIAPOD_IMG_DOMAIN: ${{ secrets.MEDIAPOD_IMG_DOMAIN }}
+          MEDIAPOD_VOD_DOMAIN: ${{ secrets.MEDIAPOD_VOD_DOMAIN }}
+          MEDIAPOD_S3_DOMAIN: ${{ secrets.MEDIAPOD_S3_DOMAIN }}
+          MINIO_CONSOLE_URL: ${{ secrets.MINIO_CONSOLE_URL }}
+          TRAEFIK_CERTRESOLVER: ${{ secrets.TRAEFIK_CERTRESOLVER || 'myresolver' }}
+          MEDIAPOD_NETWORK: ${{ secrets.MEDIAPOD_NETWORK || 'mediapod-network' }}
+          MEDIAPOD_NETWORK_EXTERNAL: ${{ secrets.MEDIAPOD_NETWORK_EXTERNAL || 'false' }}
+        run: |
+          echo "Starting Mediapod stack..."
+          docker compose -f docker-compose.yml up -d --force-recreate
+          echo "Mediapod stack started"
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services to be ready..."
+          sleep 15
+
+          # Check postgres health
+          for i in {1..30}; do
+            if docker exec mediapod-postgres pg_isready -U mediapod > /dev/null 2>&1; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            echo "  Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
+
+          # Check redis health
+          for i in {1..30}; do
+            if docker exec mediapod-redis redis-cli ping > /dev/null 2>&1; then
+              echo "Redis is ready"
+              break
+            fi
+            echo "  Waiting for Redis... ($i/30)"
+            sleep 2
+          done
+
+          # Check MinIO health
+          for i in {1..30}; do
+            if docker exec mediapod-minio curl -f http://localhost:9000/minio/health/live > /dev/null 2>&1; then
+              echo "MinIO is ready"
+              break
+            fi
+            echo "  Waiting for MinIO... ($i/30)"
+            sleep 2
+          done
+
+          echo "All services are ready"
+
+      - name: Verify deployment
+        run: |
+          echo ""
+          echo "Service status:"
+          docker compose -f docker-compose.yml ps
+          echo ""
+          echo "Verifying container images:"
+          docker inspect mediapod-api --format='API: {{.Config.Image}}' 2>/dev/null || echo "API container not found"
+          docker inspect mediapod-worker --format='Worker: {{.Config.Image}}' 2>/dev/null || echo "Worker container not found"
+          docker inspect mediapod-minio --format='MinIO: {{.Config.Image}}' 2>/dev/null || echo "MinIO container not found"
+          docker inspect mediapod-imgproxy --format='imgproxy: {{.Config.Image}}' 2>/dev/null || echo "imgproxy container not found"
+          echo ""
+
+      - name: Deployment Summary
+        env:
+          MEDIAPOD_API_DOMAIN: ${{ secrets.MEDIAPOD_API_DOMAIN }}
+          MEDIAPOD_IMG_DOMAIN: ${{ secrets.MEDIAPOD_IMG_DOMAIN }}
+          MEDIAPOD_VOD_DOMAIN: ${{ secrets.MEDIAPOD_VOD_DOMAIN }}
+        run: |
+          echo "========================================="
+          echo "Mediapod Stack Deployment Complete!"
+          echo "========================================="
+          echo ""
+          echo "Services deployed:"
+          echo "  - PostgreSQL:    localhost:5433 (internal)"
+          echo "  - Redis:         localhost:6380 (internal)"
+          echo "  - MinIO Console: localhost:9001 (admin only)"
+          echo "  - imgproxy:      https://${MEDIAPOD_IMG_DOMAIN}"
+          echo "  - Media API:     https://${MEDIAPOD_API_DOMAIN}"
+          echo "  - Media Worker:  Background service"
+          echo "  - VOD Streaming: https://${MEDIAPOD_VOD_DOMAIN}"
+          echo ""
+          echo "To check logs:"
+          echo "  docker compose -f docker-compose.yml logs -f media-api"
+          echo "  docker compose -f docker-compose.yml logs -f media-worker"
+          echo ""
