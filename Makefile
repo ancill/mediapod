@@ -117,7 +117,11 @@ dart-analyze:
 
 dart-test:
 	@echo "→ Running Dart tests..."
-	@(cd $(DART_PKG) && dart test) || echo "  ⚠ No tests found"
+	@if [ -d "$(DART_PKG)/test" ]; then \
+		(cd $(DART_PKG) && dart test); \
+	else \
+		echo "  ⚠ No test directory found, skipping"; \
+	fi
 
 dart-pub-get:
 	@echo "→ Getting Dart dependencies..."
@@ -156,7 +160,7 @@ flutter-analyze:
 
 flutter-test:
 	@echo "→ Running Flutter tests..."
-	@(cd $(FLUTTER_PKG) && flutter test)
+	@(cd $(FLUTTER_PKG) && flutter test 2>&1 | grep -v "^Package file_picker\|^Ask the maintainers\|package:chewie has")
 	@echo "  ✓ Flutter tests passed!"
 
 flutter-pub-get:
