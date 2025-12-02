@@ -138,7 +138,7 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
       final assets = response.assets;
       final initialIndex = assets.indexWhere((a) => a.id == asset.id);
 
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       MediapodGallery.show(
         context,
@@ -148,7 +148,7 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
         vodBaseUrl: AppConfig.vodUrl,
         onDelete: (deletedAsset) async {
           await client.deleteAsset(assetId: deletedAsset.id);
-          if (mounted) {
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Deleted: ${deletedAsset.filename}')),
             );
@@ -157,7 +157,7 @@ class _MediaDemoPageState extends State<MediaDemoPage> {
       );
     } catch (e) {
       // Fallback to single asset viewer
-      if (!mounted) return;
+      if (!context.mounted) return;
       MediapodFullscreenViewer.show(
         context,
         asset: asset,
