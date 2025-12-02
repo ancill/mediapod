@@ -1,0 +1,124 @@
+name: Publish Dart/Flutter Packages
+
+on:
+  push:
+    tags:
+      - 'dart-client-v*'
+      - 'flutter-widget-v*'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish'
+        required: true
+        type: choice
+        options:
+          - dart-client
+          - flutter-widget
+          - both
+      dry_run:
+        description: 'Dry run (validate without publishing)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  publish-dart-client:
+    name: Publish mediapod_client to pub.dev
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/dart-client-v')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package == 'dart-client' || github.event.inputs.package == 'both'))
+
+    defaults:
+      run:
+        working-directory: dart-client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+
+      - name: Run tests
+        run: dart test
+
+      - name: Check publish readiness
+        run: dart pub publish --dry-run
+
+      - name: Publish to pub.dev
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false')
+        run: dart pub publish --force
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+
+  publish-flutter-widget:
+    name: Publish mediapod_flutter to pub.dev
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/flutter-widget-v')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.package == 'flutter-widget' || github.event.inputs.package == 'both'))
+
+    defaults:
+      run:
+        working-directory: flutter-widget
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        run: flutter analyze --fatal-infos
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Check publish readiness
+        run: flutter pub publish --dry-run
+
+      - name: Publish to pub.dev
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'false')
+        run: flutter pub publish --force
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+
+  publish-summary:
+    name: Publish Summary
+    needs: [publish-dart-client, publish-flutter-widget]
+    if: always() && (needs.publish-dart-client.result == 'success' || needs.publish-flutter-widget.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print publish info
+        run: |
+          echo "========================================="
+          echo "Packages Published to pub.dev!"
+          echo "========================================="
+          echo ""
+          echo "View packages at:"
+          echo "  https://pub.dev/packages/mediapod_client"
+          echo "  https://pub.dev/packages/mediapod_flutter"
+          echo ""

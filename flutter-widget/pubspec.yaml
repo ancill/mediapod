@@ -7,9 +7,6 @@ version: 1.0.0
 repository: https://github.com/ancill/mediapod
 issue_tracker: https://github.com/ancill/mediapod/issues
 homepage: https://github.com/ancill/mediapod
-# Remove this line when ready to publish:
-# publish_to: none
-
 topics:
   - media
   - upload
@@ -25,12 +22,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Core client
-  # For local development, use path:
-  mediapod_client:
-    path: ../dart-client
-  # For pub.dev publication, replace with:
-  # mediapod_client: ^1.0.0
+  # Core client - uses pub.dev package
+  # For local development, temporarily change to: path: ../dart-client
+  mediapod_client: ^1.0.0
 
   # Image loading and caching
   cached_network_image: ^3.3.1
